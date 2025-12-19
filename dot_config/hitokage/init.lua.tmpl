@@ -1,0 +1,247 @@
+-- Hitokage configuration (chezmoi template)
+-- Theme-aware: loads colors from Waffle/WezTerm theme files in the shared dotfiles path.
+-- Widgets: workspaces, clock (with icon), CPU, memory.
+
+local hitokage = require("hitokage")
+
+local function expand(path)
+  local home = os.getenv("USERPROFILE") or os.getenv("HOME") or ""
+  if path:sub(1, 1) == "~" then
+    return home .. path:sub(2)
+  end
+  return path
+end
+
+local theme_name = os.getenv("WAFFLE_THEME") or "gruvbox"
+local theme_dir = expand(os.getenv("WAFFLE_THEME_DIR") or "~/.local/share/dotfiles/themes")
+local config_dir = expand(os.getenv("HITOKAGE_CONFIG_DIR") or "~/.config/hitokage")
+local styles_path = config_dir .. "/styles.css"
+
+local function load_scheme(name)
+  local theme_path = string.format("%s/%s/wezterm.lua", theme_dir, name)
+  local chunk, err = loadfile(theme_path)
+  if not chunk then
+    hitokage.log_error("Failed to load theme file: " .. tostring(err))
+    return nil
+  end
+  local ok, data = pcall(chunk)
+  if not ok then
+    hitokage.log_error("Failed to execute theme file: " .. tostring(data))
+    return nil
+  end
+  if type(data) == "table" and data.color_schemes and data.color_schemes[name] then
+    return data.color_schemes[name]
+  end
+  return nil
+end
+
+local scheme = load_scheme(theme_name) or {}
+
+local function pick(key, default)
+  if scheme[key] then
+    if type(scheme[key]) == "table" and scheme[key][1] then
+      return scheme[key][1]
+    end
+    return scheme[key]
+  end
+  return default
+end
+
+local fg = pick("foreground", "#f2e5bc")
+local bg = pick("background", "#1d2021")
+local accent = (scheme.ansi and scheme.ansi[2]) or "#d3869b"
+local sel_bg = pick("selection_bg", accent)
+local sel_fg = pick("selection_fg", "#333333")
+
+local function write_styles()
+  local css = ([[
+.bar {
+  background-color: rgba(29, 32, 33, 0.0);
+  color: %s;
+  font-family: 'MesloLGS NF', 'Courier New', 'Bars', 'Font Awesome 5 Free';
+  font-size: 12px;
+  line-height: 12px;
+  min-height: 24px;
+}
+
+.workspace {
+  padding: 0px 0px 0px 0px;
+}
+
+.workspacechild {
+  border: 1px solid rgba(168, 153, 132, 0.4);
+  color: %s;
+  background-color: rgba(60, 56, 54, 0.4);
+  font-size: 11px;
+  transition: all 500ms;
+  transition-property: min-width, background-color;
+}
+
+.workspacechild:first-child {
+  margin-left: 0px;
+}
+
+.workspacechild:selected {
+  border: 1px solid %s;
+  background-color: %s;
+  color: %s;
+  font-weight: bold;
+}
+
+.clock {
+  color: %s;
+}
+]]):format(fg, fg, fg, sel_bg, sel_fg, fg)
+
+  os.execute(string.format('mkdir "%s" 2>nul || true', config_dir))
+  local file, err = io.open(styles_path, "w")
+  if not file then
+    hitokage.log_error("Failed to write styles.css: " .. tostring(err))
+    return
+  end
+  file:write(css)
+  file:close()
+end
+
+write_styles()
+
+local monitors = hitokage.monitor.get_all()
+
+local bars = {}
+local reactive_labels = {}
+local reactive_imgs = {}
+
+local clock_icons = {
+  "\u{F144A}", "\u{F143F}", "\u{F1440}", "\u{F1441}",
+  "\u{F1442}", "\u{F1443}", "\u{F1444}", "\u{F1445}",
+  "\u{F1446}", "\u{F1447}", "\u{F1448}", "\u{F1449}",
+}
+
+local reactive_clock_icons = {}
+
+for _, monitor in ipairs(monitors) do
+  if monitor.model == "LG SDQHD" then
+    goto continue
+  end
+
+  local reactive_label = hitokage.unstable.reactive.create("foo \u{EECB}")
+  local reactive_img = hitokage.unstable.reactive.create("./smiley.png")
+  local reactive_clock_icon = hitokage.unstable.reactive.create(clock_icons[tonumber(os.date("%H")) % 12 + 1])
+
+  table.insert(reactive_labels, reactive_label)
+  table.insert(reactive_imgs, reactive_img)
+  table.insert(reactive_clock_icons, reactive_clock_icon)
+
+  local mem_str = '{{pad "left" (round (div used 1024) 1) 4}} ({{ pad "left" (concat (round (mult (div used total) 100) 1) "%") 4 }})'
+  local cpu_str = '{{pad "left" (concat (round (mult usage 100) 1) "%") 6}}'
+
+  table.insert(
+    bars,
+    hitokage.bar.create(monitor, {
+      widgets = {
+        {
+          Box = {
+            halign = 'Start',
+            hexpand = true,
+            widgets = {
+              {
+                Box = {
+                  class = "left bar-group",
+                  halign = "Start",
+                  widgets = {
+                    { Workspace = { halign = "Start", item_height = 24, item_width = 24, format = "{{add index 1}}" } },
+                  }
+                }
+              },
+            }
+          }
+        },
+        {
+          Box = {
+            halign = 'Center',
+            hexpand = true,
+            widgets = {
+              {
+                Box = {
+                  homogeneous = false,
+                  class = "center bar-group",
+                  widgets = {
+                    { Label = { class = "icon clock", label = "\u{F00ED}", } },
+                    { Clock = { class = "data", format = "%a %b %e", halign = "End" } },
+                    { Label = { class = "icon clock", label = reactive_clock_icon, } },
+                    { Clock = { class = "data", format = "%r", halign = "End" } },
+                  }
+                }
+              },
+            }
+          }
+        },
+        {
+          Box = {
+            halign = 'End',
+            hexpand = true,
+            widgets = {
+              {
+                Box = {
+                  halign = 'End',
+                  hexpand = true,
+                  widgets = {
+                    {
+                      Box = {
+                        halign = "End",
+                        class = "right bar-group",
+                        widgets = {
+                          { Label = { class = "icon memory", label = "\u{EFC5}", } },
+                          { Memory = { class = "data", format = mem_str, halign = "End" } },
+                          { Label = { class = "icon", label = "\u{F4BC}" } },
+                          { Cpu = { class = "data", format = cpu_str, halign = "End" } },
+                        },
+                      }
+                    },
+                  }
+                }
+              },
+            }
+          }
+
+        },
+      },
+      homogeneous = true,
+    })
+  )
+  ::continue::
+end
+
+local workspaces = {}
+local clocks = {}
+local boxes = {}
+
+for i, bar in ipairs(bars) do
+  while not bar:is_ready() do
+    hitokage.debug("waiting for bar to instantiate", i)
+    coroutine.yield()
+  end
+  for _, widget in ipairs(bar:get_widgets()) do
+    hitokage.debug(widget)
+    if widget.type == "Clock" then
+      table.insert(clocks, widget)
+    end
+    if widget.type == "Workspace" then
+      table.insert(workspaces, widget)
+    end
+    if widget.type == "Box" then
+      table.insert(boxes, widget)
+    end
+  end
+end
+
+local update_clock_icon = hitokage.timeout(1000, function()
+  for _, clock_icon in ipairs(reactive_clock_icons) do
+    local hour_24 = tonumber(os.date("%H"))
+    local hour_12 = hour_24 % 12
+    clock_icon:set(clock_icons[hour_12 + 1])
+  end
+end)
+
+hitokage.dispatch(update_clock_icon)
+

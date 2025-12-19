@@ -1,0 +1,16 @@
+# Chezmoi stat
+chezmoistate.boltdb
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Archives/cache
+*.zip
+*.tar.gz
+*.tgz
+*.log
+
+# Background assets (optional, keep out of repo)
+/backgrounds/
+

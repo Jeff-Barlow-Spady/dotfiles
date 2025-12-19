@@ -1,0 +1,53 @@
+-- WezTerm configuration (chezmoi template)
+-- Theme directory (Option B): ~/.local/share/dotfiles/themes
+local wezterm = require 'wezterm'
+
+local function expand(path)
+  return path:gsub('^~', os.getenv('HOME') or '')
+end
+
+local theme_name = os.getenv('WAFFLE_THEME') or 'gruvbox'
+local theme_dir = expand(os.getenv('WAFFLE_THEME_DIR') or '~/.local/share/dotfiles/themes')
+local font_name = os.getenv('WAFFLE_FONT') or 'Agave Nerd Font Mono'
+
+local function load_theme(name)
+  local theme_path = string.format('%s/%s/wezterm.lua', theme_dir, name)
+  local chunk, err = loadfile(theme_path)
+  if not chunk then
+    wezterm.log_error('Failed to load theme file: ' .. tostring(err))
+    return {}
+  end
+  local ok, data = pcall(chunk)
+  if not ok then
+    wezterm.log_error('Failed to execute theme file: ' .. tostring(data))
+    return {}
+  end
+  return data or {}
+end
+
+local theme = load_theme(theme_name)
+
+local config = {}
+
+if theme.color_schemes and theme.color_schemes[theme_name] then
+  config.color_schemes = theme.color_schemes
+  config.color_scheme = theme_name
+else
+  wezterm.log_error('Color scheme not found for theme: ' .. theme_name)
+end
+
+config.font = wezterm.font(font_name)
+config.font_size = tonumber(os.getenv('WAFFLE_FONT_SIZE') or '14')
+config.window_padding = { left = 16, right = 16, top = 14, bottom = 14 }
+config.window_decorations = 'NONE'
+config.enable_tab_bar = true
+
+config.keys = {
+  { key = 'LeftArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Left' },
+  { key = 'RightArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Right' },
+  { key = 'UpArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Up' },
+  { key = 'DownArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Down' },
+}
+
+return config
+
