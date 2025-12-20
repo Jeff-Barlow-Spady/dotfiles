@@ -136,8 +136,9 @@ for _, monitor in ipairs(monitors) do
   table.insert(reactive_imgs, reactive_img)
   table.insert(reactive_clock_icons, reactive_clock_icon)
 
-  local mem_str = '{{pad "left" (round (div used 1024) 1) 4}} ({{ pad "left" (concat (round (mult (div used total) 100) 1) "%") 4 }})'
-  local cpu_str = '{{pad "left" (concat (round (mult usage 100) 1) "%") 6}}'
+  -- NOTE: chezmoi templates don't provide `pad`; use printf for stable width formatting.
+  local mem_str = '{{ printf "%4.1f" (div used 1024) }} ({{ printf "%4.1f%%" (mult (div used total) 100) }})'
+  local cpu_str = '{{ printf "%6.1f%%" (mult usage 100) }}'
 
   table.insert(
     bars,

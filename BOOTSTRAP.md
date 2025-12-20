@@ -8,8 +8,8 @@ This is the “fresh machine” checklist to get from **nothing → working dotf
 
 ```bash
 # 0) clone your repo
-git clone https://github.com/YOUR_USERNAME/dotfiles.git
-cd dotfiles/chezmoi
+git clone https://github.com/jeff-barlow-spady/dot-files.git
+cd dotfiles
 
 # 1) bootstrap prereqs + chezmoi apply
 chmod +x setup.sh
