@@ -1,0 +1,58 @@
+{{- if or (eq .chezmoi.os "windows") (eq .chezmoi.os "linux") }}
+local wezterm = require 'wezterm'
+
+-- Make it easy to keep this config readable:
+-- - `.wezterm.lua` is the entrypoint (what wezterm looks for)
+-- - extra modules live in `~/.wezterm/` (managed by chezmoi)
+local home = (wezterm.home_dir or os.getenv('HOME') or os.getenv('USERPROFILE') or ''):gsub('\\', '/')
+local wezterm_dir = home .. '/.wezterm'
+package.path = package.path .. ';' .. wezterm_dir .. '/?.lua;' .. wezterm_dir .. '/?/init.lua'
+
+local theme = require('lib.theme')
+local layouts = require('lib.layouts')
+
+local theme_name = '{{ .chezmoi.current_theme | default "gruvbox" }}'
+-- Option B theme dir (where waffle writes theme files for wezterm/hitokage to consume)
+{{- if eq .chezmoi.os "windows" }}
+local theme_dir = (os.getenv('LOCALAPPDATA') or '') .. '\\dotfiles\\themes'
+{{- else }}
+local theme_dir = home .. '/.local/share/dotfiles/themes'
+{{- end }}
+local font_name = '{{ .chezmoi.current_font | default "Agave Nerd Font Mono" }}'
+
+local config = {}
+
+theme.apply(config, theme_dir, theme_name)
+
+config.font = wezterm.font(font_name)
+config.font_size = tonumber('{{ .chezmoi.font_size | default "14" }}')
+config.window_padding = { left = 16, right = 16, top = 14, bottom = 14 }
+config.window_decorations = 'NONE'
+config.enable_tab_bar = true
+
+-- Zellij-ish controls
+config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 900 }
+config.keys = {}
+
+local function extend(dst, src)
+  for _, v in ipairs(src) do
+    table.insert(dst, v)
+  end
+end
+
+extend(config.keys, {
+  -- pane navigation
+  { key = 'LeftArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Left' },
+  { key = 'RightArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Right' },
+  { key = 'UpArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Up' },
+  { key = 'DownArrow', mods = 'ALT', action = wezterm.action.ActivatePaneDirection 'Down' },
+})
+
+-- Language/task-specific layouts live in `~/.wezterm/layouts/*`
+layouts.register(wezterm)
+extend(config.keys, layouts.keys(wezterm))
+
+return config
+{{- end }}
+
+

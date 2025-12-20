@@ -1,0 +1,55 @@
+{{- if eq .chezmoi.os "windows" }}
+.shell powershell
+
+# Launchers
+win + enter : Start-Process wezterm
+win + b     : Start-Process msedge
+win + space : Start-Process "$Env:LOCALAPPDATA\\Programs\\Flow Launcher\\Flow.Launcher.exe"
+
+# Window focus
+alt + h : komorebic.exe focus left
+alt + j : komorebic.exe focus down
+alt + k : komorebic.exe focus up
+alt + l : komorebic.exe focus right
+
+# Move windows
+alt + shift + h : komorebic.exe move left
+alt + shift + j : komorebic.exe move down
+alt + shift + k : komorebic.exe move up
+alt + shift + l : komorebic.exe move right
+alt + shift + enter : komorebic.exe promote
+alt + q : komorebic.exe close
+
+# Workspaces
+alt + 1 : komorebic.exe workspace 1
+alt + 2 : komorebic.exe workspace 2
+alt + 3 : komorebic.exe workspace 3
+alt + 4 : komorebic.exe workspace 4
+alt + 5 : komorebic.exe workspace 5
+alt + 6 : komorebic.exe workspace 6
+alt + 7 : komorebic.exe workspace 7
+alt + 8 : komorebic.exe workspace 8
+alt + 9 : komorebic.exe workspace 9
+alt + 0 : komorebic.exe workspace 10
+
+alt + shift + 1 : komorebic.exe move-to-workspace 1
+alt + shift + 2 : komorebic.exe move-to-workspace 2
+alt + shift + 3 : komorebic.exe move-to-workspace 3
+alt + shift + 4 : komorebic.exe move-to-workspace 4
+alt + shift + 5 : komorebic.exe move-to-workspace 5
+alt + shift + 6 : komorebic.exe move-to-workspace 6
+alt + shift + 7 : komorebic.exe move-to-workspace 7
+alt + shift + 8 : komorebic.exe move-to-workspace 8
+alt + shift + 9 : komorebic.exe move-to-workspace 9
+alt + shift + 0 : komorebic.exe move-to-workspace 10
+
+# Layout and system
+alt + shift + left  : komorebic.exe resize-axis horizontal -50
+alt + shift + right : komorebic.exe resize-axis horizontal 50
+alt + shift + up    : komorebic.exe resize-axis vertical -50
+alt + shift + down  : komorebic.exe resize-axis vertical 50
+alt + f             : komorebic.exe toggle-float
+alt + r             : komorebic.exe reload-config
+alt + shift + r     : taskkill /f /im whkd.exe ; Start-Process whkd -WindowStyle hidden
+{{- end }}
+

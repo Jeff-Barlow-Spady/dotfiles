@@ -1,3 +1,4 @@
+{{- if eq .chezmoi.os "windows" }}
 {
   "config_version": 1,
   "general": {
@@ -26,4 +27,5 @@
   "monitors": [],
   "rules": []
 }
+{{- end }}
 

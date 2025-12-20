@@ -1,7 +1,7 @@
--- Hitokage configuration (chezmoi template)
+-- Hitokage configuration (chezmoi template) - Windows only
 -- Theme-aware: loads colors from Waffle/WezTerm theme files in the shared dotfiles path.
 -- Widgets: workspaces, clock (with icon), CPU, memory.
-
+{{- if eq .chezmoi.os "windows" }}
 local hitokage = require("hitokage")
 
 local function expand(path)
@@ -12,8 +12,12 @@ local function expand(path)
   return path
 end
 
-local theme_name = os.getenv("WAFFLE_THEME") or "gruvbox"
-local theme_dir = expand(os.getenv("WAFFLE_THEME_DIR") or "~/.local/share/dotfiles/themes")
+local theme_name = "{{ .chezmoi.current_theme | default "gruvbox" }}"
+{{- if eq .chezmoi.os "windows" }}
+local theme_dir = expand((os.getenv("LOCALAPPDATA") or "") .. "\\dotfiles\\themes")
+{{- else }}
+local theme_dir = expand("~/.local/share/dotfiles/themes")
+{{- end }}
 local config_dir = expand(os.getenv("HITOKAGE_CONFIG_DIR") or "~/.config/hitokage")
 local styles_path = config_dir .. "/styles.css"
 
@@ -244,4 +248,5 @@ local update_clock_icon = hitokage.timeout(1000, function()
 end)
 
 hitokage.dispatch(update_clock_icon)
+{{- end }}
 

@@ -1,3 +1,4 @@
+{{- if eq .chezmoi.os "windows" }}
 .shell powershell
 
 # Launchers
@@ -50,4 +51,5 @@ alt + shift + down  : komorebic.exe resize-axis vertical 50
 alt + f             : komorebic.exe toggle-float
 alt + r             : komorebic.exe reload-config
 alt + shift + r     : taskkill /f /im whkd.exe ; Start-Process whkd -WindowStyle hidden
+{{- end }}
 
