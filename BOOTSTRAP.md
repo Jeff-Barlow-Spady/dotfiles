@@ -13,7 +13,7 @@ cd dotfiles/chezmoi
 
 # 1) bootstrap prereqs + chezmoi apply
 chmod +x setup.sh
-REPO_URL="https://github.com/YOUR_USERNAME/dotfiles.git" ./setup.sh
+REPO_URL="https://github.com/jeff-barlow-spady/dot-files.git" ./setup.sh
 ```
 
 What it does:
@@ -27,25 +27,44 @@ What it does:
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 export PATH="$HOME/.local/bin:$PATH"
 
-chezmoi init --apply https://github.com/YOUR_USERNAME/dotfiles.git
+chezmoi init --apply https://github.com/jeff-barlow-spady/dot-files.git
 ```
 
-### Pi: install waffle binary (recommended: copy the prebuilt)
+### Pi: install waffle
 
-From your dev machine:
+#### Option A (recommended): download from GitHub Releases on the Pi
 
 ```bash
-# build (creates waffle-linux-arm64)
+mkdir -p "$HOME/.local/bin"
+arch="$(uname -m)"
+case "$arch" in
+  aarch64|arm64) asset="waffle-linux-arm64" ;;
+  x86_64|amd64)  asset="waffle-linux-amd64" ;;
+  *) echo "Unsupported arch: $arch" ; exit 1 ;;
+esac
+
+url="$(curl -fsSL https://api.github.com/repos/Jeff-Barlow-Spady/waffle/releases/latest \
+  | grep -oE '\"browser_download_url\":[^\\\"]*\"[^\\\"]*\"' \
+  | cut -d'\"' -f4 \
+  | grep \"/${asset}$\" \
+  | head -n1)"
+
+curl -fsSL -o "$HOME/.local/bin/waffle" "$url"
+chmod +x "$HOME/.local/bin/waffle"
+
+waffle theme
+waffle font
+```
+
+#### Option B: copy a prebuilt from your dev machine
+
+```bash
+# on your dev machine (build creates waffle-linux-arm64)
 cd /home/toasty/CONFIGS/waffle
 make build-linux-arm64
-
-# copy to pi
 scp waffle-linux-arm64 pi@PI_HOST_OR_IP:/home/pi/.local/bin/waffle
-```
 
-On the Pi:
-
-```bash
+# on the pi
 chmod +x "$HOME/.local/bin/waffle"
 waffle theme
 waffle font
@@ -70,6 +89,12 @@ $env:REPO_URL="https://github.com/YOUR_USERNAME/dotfiles.git"
 
 ```powershell
 .\setup.ps1 -NoWezTerm
+```
+
+- Skip waffle install (if you want to install it yourself):
+
+```powershell
+.\setup.ps1 -NoWaffle
 ```
 
 - Core tools only (skip CLI tools + languages):
