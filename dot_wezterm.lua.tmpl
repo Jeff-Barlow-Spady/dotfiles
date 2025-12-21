@@ -11,21 +11,21 @@ package.path = package.path .. ';' .. wezterm_dir .. '/?.lua;' .. wezterm_dir ..
 local theme = require('lib.theme')
 local layouts = require('lib.layouts')
 
-local theme_name = '{{ .chezmoi.current_theme | default "gruvbox" }}'
+local theme_name = '{{ if .chezmoi.current_theme }}{{ .chezmoi.current_theme }}{{ else }}gruvbox{{ end }}'
 -- Option B theme dir (where waffle writes theme files for wezterm/hitokage to consume)
 {{- if eq .chezmoi.os "windows" }}
 local theme_dir = (os.getenv('LOCALAPPDATA') or '') .. '\\dotfiles\\themes'
 {{- else }}
 local theme_dir = home .. '/.local/share/dotfiles/themes'
 {{- end }}
-local font_name = '{{ .chezmoi.current_font | default "Agave Nerd Font Mono" }}'
+local font_name = '{{ if .chezmoi.current_font }}{{ .chezmoi.current_font }}{{ else }}Agave Nerd Font Mono{{ end }}'
 
 local config = {}
 
 theme.apply(config, theme_dir, theme_name)
 
 config.font = wezterm.font(font_name)
-config.font_size = tonumber('{{ .chezmoi.font_size | default "14" }}')
+config.font_size = tonumber('{{ if .chezmoi.font_size }}{{ .chezmoi.font_size }}{{ else }}14{{ end }}')
 config.window_padding = { left = 16, right = 16, top = 14, bottom = 14 }
 config.window_decorations = 'NONE'
 config.enable_tab_bar = true
@@ -54,5 +54,3 @@ extend(config.keys, layouts.keys(wezterm))
 
 return config
 {{- end }}
-
-
