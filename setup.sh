@@ -160,7 +160,7 @@ if [[ -n "$REPO_URL" ]]; then
 else
   log "REPO_URL not provided."
   log "Run:"
-  log "  chezmoi init --apply https://github.com/YOUR_USERNAME/dotfiles.git"
+  log "  chezmoi init --apply https://github.com/jeff-barlow-spady/dotfiles.git"
 fi
 
 log ""
