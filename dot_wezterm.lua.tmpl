@@ -22,7 +22,7 @@ local config = {}
 theme.apply(config, theme_dir, theme_name)
 
 config.font = wezterm.font(font_name)
-config.font_size = tonumber('{{ .chezmoi.font_size | default "14" }}')
+config.font_size = tonumber('{{ index .chezmoi "font_size" | default "14" }}')
 config.window_padding = { left = 16, right = 16, top = 14, bottom = 14 }
 config.window_decorations = 'NONE'
 config.enable_tab_bar = true

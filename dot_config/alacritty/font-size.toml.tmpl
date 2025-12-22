@@ -1,5 +1,5 @@
 {{- if and (eq .chezmoi.os "linux") (or (and (eq .chezmoi.osRelease.id "debian") (or (regexMatch "^pi" .chezmoi.hostname) (regexMatch "raspberry" .chezmoi.hostname))) (regexMatch "^pi" .chezmoi.hostname) (regexMatch "raspberry" .chezmoi.hostname)) }}
 [font]
-size = {{ .chezmoi.font_size | default "14" }}
+size = {{ index .chezmoi "font_size" | default "14" }}
 {{- end }}
 
