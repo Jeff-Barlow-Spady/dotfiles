@@ -2,11 +2,11 @@
 {{- $theme := index .chezmoi "current_theme" | default "gruvbox" }}
 {{- $themePath := printf "themes/%s/alacritty.toml" $theme }}
 {{- if (stat $themePath) }}
-{{ readFile $themePath }}
+{{ include $themePath }}
 {{- else }}
 # Theme file not found: {{ $themePath }}
 # Falling back to gruvbox
-{{ readFile "themes/gruvbox/alacritty.toml" }}
+{{ include "themes/gruvbox/alacritty.toml" }}
 {{- end }}
 {{- end }}
 

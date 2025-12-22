@@ -1,10 +1,10 @@
 {{- $theme := index .chezmoi "current_theme" | default "gruvbox" }}
 {{- $themePath := printf "themes/%s/neovim.lua" $theme }}
 {{- if (stat $themePath) }}
-{{ readFile $themePath }}
+{{ include $themePath }}
 {{- else }}
 -- Theme file not found: {{ $themePath }}
 -- Falling back to gruvbox
-{{ readFile "themes/gruvbox/neovim.lua" }}
+{{ include "themes/gruvbox/neovim.lua" }}
 {{- end }}
 
