@@ -54,13 +54,9 @@ if (-not $chezmoiSourceDir) {
     exit 1
 }
 
-# Theme directory (Option B path)
-$themeDir = $null
-if ($env:LOCALAPPDATA) {
-    $themeDir = Join-Path $env:LOCALAPPDATA "dotfiles\themes"
-} else {
-    $themeDir = Join-Path $env:USERPROFILE ".local\share\dotfiles\themes"
-}
+# Theme directory: co-located with WezTerm config (~/.wezterm/themes/)
+$weztermDir = Join-Path $env:USERPROFILE ".wezterm"
+$themeDir = Join-Path $weztermDir "themes"
 
 # Ensure theme directory exists
 if (-not (Test-Path $themeDir)) {

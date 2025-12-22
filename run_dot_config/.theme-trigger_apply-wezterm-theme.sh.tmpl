@@ -1,0 +1,39 @@
+#!/bin/bash
+# Copy WezTerm theme files from chezmoi source to ~/.wezterm/themes/
+# Runs when dot_config/.theme-trigger.tmpl changes (theme change)
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "windows") }}
+set -euo pipefail
+
+# Get theme from chezmoi data using proper path detection
+CHEZMOI_DATA="{{ .chezmoi.dataDir }}/.chezmoidata.yaml"
+if [[ -f "$CHEZMOI_DATA" ]]; then
+  THEME=$(grep -E '^[[:space:]]*current_theme:' "$CHEZMOI_DATA" | sed 's/.*:[[:space:]]*"\(.*\)".*/\1/' | head -1)
+fi
+THEME="${THEME:-gruvbox}"
+
+# Get chezmoi source dir
+CHEZMOI_SOURCE_DIR="${CHEZMOI_SOURCE_DIR:-${HOME}/.local/share/chezmoi}"
+if command -v chezmoi >/dev/null 2>&1; then
+  CHEZMOI_SOURCE_DIR=$(chezmoi source-path 2>/dev/null || echo "$CHEZMOI_SOURCE_DIR")
+fi
+
+# Theme directory: co-located with WezTerm config (~/.wezterm/themes/)
+WEZTERM_DIR="${HOME}/.wezterm"
+THEME_DIR="${WEZTERM_DIR}/themes"
+
+# Ensure theme directory exists
+mkdir -p "$THEME_DIR"
+
+# Copy wezterm theme file if it exists in source
+SOURCE_THEME_FILE="${CHEZMOI_SOURCE_DIR}/themes/${THEME}/wezterm.lua"
+DEST_THEME_FILE="${THEME_DIR}/${THEME}/wezterm.lua"
+
+if [[ -f "$SOURCE_THEME_FILE" ]]; then
+  mkdir -p "$(dirname "$DEST_THEME_FILE")"
+  cp "$SOURCE_THEME_FILE" "$DEST_THEME_FILE"
+  echo "Updated WezTerm theme file: $DEST_THEME_FILE"
+else
+  echo "Warning: Theme file not found: $SOURCE_THEME_FILE" >&2
+fi
+{{- end }}
+
