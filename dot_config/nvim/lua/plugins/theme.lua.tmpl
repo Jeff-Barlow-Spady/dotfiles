@@ -1,4 +1,4 @@
-{{- $theme := .chezmoi.current_theme | default "gruvbox" }}
+{{- $theme := index .chezmoi "current_theme" | default "gruvbox" }}
 {{- $themePath := printf "themes/%s/neovim.lua" $theme }}
 {{- if (stat $themePath) }}
 {{ readFile $themePath }}

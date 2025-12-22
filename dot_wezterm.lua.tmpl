@@ -11,11 +11,11 @@ package.path = package.path .. ';' .. wezterm_dir .. '/?.lua;' .. wezterm_dir ..
 local theme = require('lib.theme')
 local layouts = require('lib.layouts')
 
-local theme_name = '{{ .chezmoi.current_theme | default "gruvbox" }}'
+local theme_name = '{{ index .chezmoi "current_theme" | default "gruvbox" }}'
 -- Theme directory: co-located with WezTerm config for better organization
 -- Themes are copied from chezmoi source to this location by run scripts
 local theme_dir = wezterm_dir .. '/themes'
-local font_name = '{{ .chezmoi.current_font | default "Agave Nerd Font Mono" }}'
+local font_name = '{{ index .chezmoi "current_font" | default "Agave Nerd Font Mono" }}'
 
 local config = {}
 

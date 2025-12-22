@@ -1,2 +1,2 @@
-{{ .chezmoi.current_theme | default "gruvbox" }}
+{{ index .chezmoi "current_theme" | default "gruvbox" }}
 

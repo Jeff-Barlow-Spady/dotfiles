@@ -1,9 +1,9 @@
 # Starship prompt configuration
-# Theme: {{ .chezmoi.current_theme | default "gruvbox" }}
+# Theme: {{ index .chezmoi "current_theme" | default "gruvbox" }}
 
 # Get format colors from theme (basic implementation)
 # Starship uses format strings, so we'll use a simple color scheme based on theme
-{{- $theme := .chezmoi.current_theme | default "gruvbox" }}
+{{- $theme := index .chezmoi "current_theme" | default "gruvbox" }}
 
 format = """
 [╭─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $directory$git_branch$git_status [─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $nix_shell$nodejs$rust$golang$python$cmd_duration [─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $time

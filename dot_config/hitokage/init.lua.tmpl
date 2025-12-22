@@ -12,7 +12,7 @@ local function expand(path)
   return path
 end
 
-local theme_name = "{{ .chezmoi.current_theme | default "gruvbox" }}"
+local theme_name = "{{ index .chezmoi "current_theme" | default "gruvbox" }}"
 -- Theme directory: co-located with WezTerm config (~/.wezterm/themes/)
 local wezterm_dir = expand("~/.wezterm")
 local theme_dir = wezterm_dir .. "/themes"

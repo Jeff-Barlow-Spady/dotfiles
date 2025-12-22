@@ -4,7 +4,7 @@
     "type": "{{ if eq .chezmoi.os "windows" }}windows{{ else }}arch{{ end }}",
     "color": {
       "keys": [
-        {{- $theme := .chezmoi.current_theme | default "gruvbox" }}
+        {{- $theme := index .chezmoi "current_theme" | default "gruvbox" }}
         {{- if eq $theme "gruvbox" }}
         "#fb4934", "#b8bb26", "#fabd2f", "#83a598", "#d3869b", "#8ec07c", "#fe8019"
         {{- else if eq $theme "catppuccin" }}

@@ -1,5 +1,5 @@
 {{- if eq .chezmoi.os "linux" }}
-theme "{{ .chezmoi.current_theme | default "gruvbox" }}"
+theme "{{ index .chezmoi "current_theme" | default "gruvbox" }}"
 
 default_shell "bash"
 
