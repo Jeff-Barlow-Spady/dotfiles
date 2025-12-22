@@ -1,6 +1,6 @@
 # Chezmoi stat
 chezmoistate.boltdb
-
+dev
 # OS junk
 .DS_Store
 Thumbs.db
