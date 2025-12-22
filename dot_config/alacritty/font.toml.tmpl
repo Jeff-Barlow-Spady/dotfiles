@@ -1,4 +1,4 @@
-{{- if and (eq .chezmoi.os "linux") (or (and (eq .chezmoi.osRelease.id "debian") (or (match "^pi" .chezmoi.hostname) (match "raspberry" .chezmoi.hostname))) (match "^pi" .chezmoi.hostname) (match "raspberry" .chezmoi.hostname)) }}
+{{- if and (eq .chezmoi.os "linux") (or (and (eq .chezmoi.osRelease.id "debian") (or (regexMatch "^pi" .chezmoi.hostname) (regexMatch "raspberry" .chezmoi.hostname))) (regexMatch "^pi" .chezmoi.hostname) (regexMatch "raspberry" .chezmoi.hostname)) }}
 [font]
 normal = { family = "{{ .chezmoi.current_font | default "Agave Nerd Font Mono" }}", style = "Regular" }
 bold = { family = "{{ .chezmoi.current_font | default "Agave Nerd Font Mono" }}", style = "Bold" }

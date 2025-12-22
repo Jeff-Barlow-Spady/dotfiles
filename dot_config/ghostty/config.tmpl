@@ -1,4 +1,4 @@
-{{- if and (eq .chezmoi.os "linux") (not (or (and (eq .chezmoi.osRelease.id "debian") (or (match "^pi" .chezmoi.hostname) (match "raspberry" .chezmoi.hostname))) (match "^pi" .chezmoi.hostname) (match "raspberry" .chezmoi.hostname))) }}
+{{- if and (eq .chezmoi.os "linux") (not (or (and (eq .chezmoi.osRelease.id "debian") (or (regexMatch "^pi" .chezmoi.hostname) (regexMatch "raspberry" .chezmoi.hostname))) (regexMatch "^pi" .chezmoi.hostname) (regexMatch "raspberry" .chezmoi.hostname))) }}
 font-family = "{{ .chezmoi.current_font | default "Agave Nerd Font" }}"
 command = zellij
 {{- end }}
