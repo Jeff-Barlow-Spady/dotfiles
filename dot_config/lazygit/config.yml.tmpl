@@ -43,7 +43,7 @@ git:
     all: false
   skipHookPrefix: WIP
   autoFetch: true
-  branchLogCmd: 'git log --oneline --graph --all --decorate --color=always {{branchName}}'
+  branchLogCmd: 'git log --oneline --graph --all --decorate --color=always {{ "{{" }}branchName{{ "}}" }}'
 update:
   method: prompt
   days: 14
