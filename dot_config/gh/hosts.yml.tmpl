@@ -1,6 +1,6 @@
 github.com:
     git_protocol: https
     users:
-        {{ .chezmoi.username | default "YOUR_USERNAME" }}:
-    user: {{ .chezmoi.username | default "YOUR_USERNAME" }}
+        {{ or (index .chezmoi "username") "YOUR_USERNAME" }}:
+    user: {{ or (index .chezmoi "username") "YOUR_USERNAME" }}
 

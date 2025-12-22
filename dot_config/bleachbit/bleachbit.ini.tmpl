@@ -17,7 +17,7 @@ window_x = 26
 window_y = 23
 window_width = 800
 window_height = 600
-hashsalt = {{ .chezmoi.hashsalt | default "CHANGE_ME" }}
+hashsalt = {{ or (index .chezmoi "hashsalt") "CHANGE_ME" }}
 auto_detect_lang = True
 window_fullscreen = False
 
