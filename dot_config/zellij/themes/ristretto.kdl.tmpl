@@ -1,7 +1,7 @@
 {{- if eq .chezmoi.os "linux" }}
 {{- $themePath := "themes/ristretto/zellij.kdl" }}
 {{- if (stat $themePath) }}
-{{ readFile $themePath }}
+{{ include $themePath }}
 {{- else }}
 # Theme file not found: {{ $themePath }}
 themes {
