@@ -79,7 +79,9 @@ $env:REPO_URL="https://github.com/YOUR_USERNAME/dotfiles.git"; .\setup.ps1
 3. **Set initial theme and font:**
    ```bash
    waffle theme  # Select a theme
-   waffle font   # Select a font
+   chezmoi apply  # Apply the theme changes
+   waffle font    # Select a font
+   chezmoi apply  # Apply the font changes
    ```
 
 4. **Windows-specific: Start services**
@@ -108,10 +110,15 @@ $env:REPO_URL="https://github.com/YOUR_USERNAME/dotfiles.git"; .\setup.ps1
    - Linux default: `~/.local/share/chezmoi/.chezmoidata.yaml` (or `$XDG_DATA_HOME/chezmoi/.chezmoidata.yaml`)
    - Windows default: `%LOCALAPPDATA%\\chezmoi\\.chezmoidata.yaml`
    - Override: `CHEZMOI_DATA_DIR`
+   - **Important**: Waffle only updates the data file; you must run `chezmoi apply` to apply changes
 2. **Chezmoi templates** read from `.chezmoi.current_theme` and `.chezmoi.current_font`
-3. **OS conditionals** ensure only relevant configs are generated:
-   - Windows: WezTerm + Komorebi + Hitokage + whkd
-   - Linux: WezTerm + Zellij + Ghostty + Neovim + btop
+3. **Theme trigger file** (`dot_config/.theme-trigger.tmpl`) changes when theme changes, triggering run scripts
+4. **Run scripts** automatically apply theme changes to tools:
+   - Windows: PowerShell script updates WezTerm, Hitokage, and other Windows tools
+   - Linux: Bash scripts update lxpanel, wayfire, and other Linux tools
+5. **OS conditionals** ensure only relevant configs are generated:
+   - Windows: WezTerm + Komorebi + Hitokage + whkd + Starship + Fastfetch
+   - Linux: WezTerm + Zellij + Ghostty + Neovim + btop + Starship + Fastfetch
    - Linux (GNOME): Additional desktop theming via `gnome.sh` scripts (optional)
 
 ## WezTerm Layouts (Zellij-like)
@@ -142,6 +149,8 @@ On Windows, chezmoi will:
   - Komorebi: `%APPDATA%\komorebi\komorebi.json`
   - Hitokage: `%USERPROFILE%\.config\hitokage\init.lua`
   - whkd: `%USERPROFILE%\.config\whkdrc`
+  - Starship: `%USERPROFILE%\.config\starship.toml`
+  - Fastfetch: `%USERPROFILE%\.config\fastfetch\config.jsonc`
   - Themes: `%LOCALAPPDATA%\dotfiles\themes\` (Option B path)
 
 ## Linux Compatibility
@@ -152,6 +161,8 @@ On Windows, chezmoi will:
 - ✅ Ghostty terminal configuration
 - ✅ Neovim editor configuration
 - ✅ btop system monitor themes
+- ✅ Starship prompt configuration
+- ✅ Fastfetch system information
 - ✅ Waffle CLI theme/font switching
 
 **GNOME/Ubuntu specific (optional):**
@@ -160,10 +171,32 @@ On Windows, chezmoi will:
 
 **Note**: The GNOME-specific scripts in theme directories are optional. If you're not on GNOME, they'll simply be ignored. All core terminal/editor tools work on any Linux distribution (Arch, Fedora, Debian, etc.).
 
+## Theme Switching Workflow
+
+1. **Change theme/font:**
+   ```bash
+   waffle theme  # or waffle font
+   ```
+
+2. **Apply changes:**
+   ```bash
+   chezmoi apply
+   ```
+   This will:
+   - Update all template files with new theme/font
+   - Trigger run scripts that apply theme to tools (WezTerm, Hitokage, lxpanel, wayfire, etc.)
+   - Copy theme files to the appropriate locations
+
+3. **Optional automation:**
+   - **Linux**: Set up a cron job or systemd timer to run `chezmoi apply` periodically
+   - **Windows**: Use Task Scheduler to run `chezmoi apply` on a schedule or file change
+
 ## Troubleshooting
 
-- **Themes not found**: Ensure `~/.local/share/dotfiles/themes/` exists and contains theme directories
+- **Themes not found**: Ensure `~/.local/share/dotfiles/themes/` (Linux) or `%LOCALAPPDATA%\dotfiles\themes\` (Windows) exists and contains theme directories
 - **OS detection issues**: Check `chezmoi data` to see detected OS
 - **Templates not applying**: Run `chezmoi apply -v` to see what's happening
+- **Run scripts not executing**: Ensure the theme trigger file (`dot_config/.theme-trigger.tmpl`) changes when you switch themes
+- **Windows theme not applying**: Check that PowerShell execution policy allows scripts: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 - **GNOME scripts fail**: This is expected if you're not on GNOME - they're optional
 

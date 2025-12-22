@@ -156,7 +156,13 @@ install_waffle_linux() {
 log ""
 if [[ -n "$REPO_URL" ]]; then
   log "Initializing chezmoi from: $REPO_URL"
-  chezmoi init --apply "$REPO_URL"
+  # If already initialized, just apply; otherwise init
+  if [[ -d "$HOME/.local/share/chezmoi" ]] || [[ -n "${CHEZMOI_SOURCE_DIR:-}" ]]; then
+    log "Chezmoi already initialized, applying changes..."
+    chezmoi apply
+  else
+    chezmoi init --apply "$REPO_URL"
+  fi
 else
   log "REPO_URL not provided."
   log "Run:"

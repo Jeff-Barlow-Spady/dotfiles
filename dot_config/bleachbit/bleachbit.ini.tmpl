@@ -1,0 +1,65 @@
+[bleachbit]
+auto_hide = True
+check_beta = False
+check_online_updates = True
+dark_mode = True
+debug = False
+delete_confirmation = True
+exit_done = False
+kde_shred_menu_option = False
+remember_geometry = True
+shred = False
+units_iec = False
+window_maximized = False
+first_start = False
+version = 5.0.0
+window_x = 26
+window_y = 23
+window_width = 800
+window_height = 600
+hashsalt = {{ .chezmoi.hashsalt | default "CHANGE_ME" }}
+auto_detect_lang = True
+window_fullscreen = False
+
+[hashpath]
+
+[list/shred_drives]
+{{- if eq .chezmoi.os "linux" }}
+0 = {{ .chezmoi.homeDir }}/.cache
+1 = /tmp
+{{- else if eq .chezmoi.os "windows" }}
+0 = {{ .chezmoi.homeDir }}\AppData\Local\Temp
+{{- end }}
+
+[preserve_languages]
+en = True
+
+[tree]
+bash.history = True
+bash = True
+deepscan.backup = True
+deepscan = True
+firefox = True
+firefox.cache = True
+firefox.cookies = True
+firefox.crash_reports = True
+firefox.dom = True
+firefox.forms = True
+firefox.session_restore = True
+firefox.vacuum = True
+system.cache = True
+system = True
+{{- if eq .chezmoi.os "windows" }}
+zoom.cache = True
+zoom = True
+zoom.logs = True
+zoom.recordings = True
+{{- end }}
+system.trash = True
+system.tmp = True
+deepscan.tmp = True
+system.desktop_entry = True
+firefox.backup = True
+deepscan.vim_swap_root = True
+bash.tmp = True
+

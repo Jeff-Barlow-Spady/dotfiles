@@ -1,0 +1,45 @@
+# Lazydocker configuration
+# This is a minimal template - customize as needed
+gui:
+  scrollHeight: 2
+  sidePanelWidth: 0.3333
+  language: 'auto'
+  theme:
+    lightTheme: false
+    activeBorderColor:
+      - green
+      - bold
+    inactiveBorderColor:
+      - white
+    optionsTextColor:
+      - blue
+    selectedLineBgColor:
+      - blue
+    selectedRangeBgColor:
+      - blue
+    defaultFgColor:
+      - default
+commandTemplates:
+  dockerCompose:
+    up: 'docker-compose up -d {{.Service}}'
+    down: 'docker-compose down'
+    restart: 'docker-compose restart {{.Service}}'
+    logs: 'docker-compose logs -f {{.Service}}'
+    build: 'docker-compose build {{.Service}}'
+    pull: 'docker-compose pull {{.Service}}'
+    config: 'docker-compose config'
+  docker:
+    containerLogs: 'docker logs --since={{.Timestamp}} --timestamps --follow {{.Container}}'
+    containerStop: 'docker stop {{.Container}}'
+    containerStart: 'docker start {{.Container}}'
+    containerRestart: 'docker restart {{.Container}}'
+    containerRemove: 'docker rm {{.Container}}'
+    containerPrune: 'docker container prune -f'
+    imagePrune: 'docker image prune -af'
+    volumePrune: 'docker volume prune -f'
+    systemPrune: 'docker system prune -af'
+    dockerCompose: 'docker-compose'
+confirmOnQuit: false
+notARepository: 'prompt'
+promptToReturnFromSubprocess: true
+

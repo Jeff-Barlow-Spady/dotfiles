@@ -13,11 +13,7 @@ local function expand(path)
 end
 
 local theme_name = "{{ .chezmoi.current_theme | default "gruvbox" }}"
-{{- if eq .chezmoi.os "windows" }}
 local theme_dir = expand((os.getenv("LOCALAPPDATA") or "") .. "\\dotfiles\\themes")
-{{- else }}
-local theme_dir = expand("~/.local/share/dotfiles/themes")
-{{- end }}
 local config_dir = expand(os.getenv("HITOKAGE_CONFIG_DIR") or "~/.config/hitokage")
 local styles_path = config_dir .. "/styles.css"
 

@@ -34,10 +34,9 @@ func TestWaffleChezmoiIntegration(t *testing.T) {
 	chezmoiDataDir := filepath.Join(tmpDir, "chezmoi-data")
 	homeDir := filepath.Join(tmpDir, "home")
 
-	// Setup test environment - create ALL directories upfront
+	// Setup test environment
 	os.MkdirAll(chezmoiSource, 0755)
 	os.MkdirAll(homeDir, 0755)
-	os.MkdirAll(chezmoiDataDir, 0755) // Create data dir BEFORE init
 	os.Setenv("CHEZMOI_SOURCE_DIR", chezmoiSource)
 	os.Setenv("CHEZMOI_DATA_DIR", chezmoiDataDir)
 	os.Setenv("HOME", homeDir)
@@ -51,60 +50,40 @@ func TestWaffleChezmoiIntegration(t *testing.T) {
 	actualChezmoiDir := findChezmoiDirForIntegration(t)
 	copyTestTemplatesForIntegration(t, actualChezmoiDir, chezmoiSource)
 
-	// Create .chezmoidata.yaml BEFORE init so templates can use it
-	// Directory should already exist, but ensure it does
-	if err := os.MkdirAll(chezmoiDataDir, 0755); err != nil {
-		t.Fatalf("Failed to create chezmoi data directory: %v", err)
+	// Initialize chezmoi
+	initCmd := exec.Command("chezmoi", "init", "--source", chezmoiSource, "--destination", homeDir)
+	initCmd.Env = append(os.Environ(), "CHEZMOI_SOURCE_DIR="+chezmoiSource, "CHEZMOI_DATA_DIR="+chezmoiDataDir)
+	if err := initCmd.Run(); err != nil {
+		t.Fatalf("Failed to initialize chezmoi: %v", err)
 	}
+
+	// Create .chezmoidata.yaml with waffle data
 	chezmoiDataPath := filepath.Join(chezmoiDataDir, ".chezmoidata.yaml")
-	initialData := `current_theme: gruvbox
+	dataContent := `current_theme: gruvbox
 current_font: "Agave Nerd Font"
 font_size: "14"
 `
-	if err := os.WriteFile(chezmoiDataPath, []byte(initialData), 0644); err != nil {
-		t.Fatalf("Failed to write initial chezmoi data: %v", err)
-	}
-
-	// Initialize chezmoi with explicit source and destination
-	// Use --source-path and --destination to avoid chezmoi looking in default locations
-	initCmd := exec.Command("chezmoi", "init", "--source", chezmoiSource, "--destination", homeDir)
-	env := append(os.Environ(), 
-		"CHEZMOI_SOURCE_DIR="+chezmoiSource,
-		"CHEZMOI_DATA_DIR="+chezmoiDataDir,
-		"HOME="+homeDir,
-	)
-	initCmd.Env = env
-	initOutput, err := initCmd.CombinedOutput()
-	if err != nil {
-		t.Logf("Chezmoi init output: %s", string(initOutput))
-		// Don't fail if init has warnings - it might still work
-		t.Logf("Note: Chezmoi init may have warnings but should still initialize")
-	}
-
-	// Data file was already created before init, just verify it exists
-	if _, err := os.Stat(chezmoiDataPath); err != nil {
-		t.Fatalf("Chezmoi data file should exist: %v", err)
+	if err := os.WriteFile(chezmoiDataPath, []byte(dataContent), 0644); err != nil {
+		t.Fatalf("Failed to write chezmoi data: %v", err)
 	}
 
 	// Test that chezmoi can read the data and render templates
-	applyCmd := exec.Command("chezmoi", "apply", "--dry-run", "--verbose", "--source", chezmoiSource, "--destination", homeDir)
-	applyCmd.Env = env
+	applyCmd := exec.Command("chezmoi", "apply", "--dry-run", "--verbose")
+	applyCmd.Env = append(os.Environ(), "CHEZMOI_SOURCE_DIR="+chezmoiSource, "CHEZMOI_DATA_DIR="+chezmoiDataDir)
 	output, err := applyCmd.CombinedOutput()
 	if err != nil {
 		t.Logf("Chezmoi apply output: %s", string(output))
-		// Don't fail on dry-run errors - they might be expected
-		t.Logf("Note: Dry-run may show errors for missing dependencies, but template rendering should work")
+		t.Fatalf("Chezmoi apply failed: %v", err)
 	}
 
 	// Verify theme trigger file would be created
-	applyCmd2 := exec.Command("chezmoi", "apply", "--dry-run", "--source", chezmoiSource, "--destination", homeDir)
-	applyCmd2.Env = env
+	applyCmd2 := exec.Command("chezmoi", "apply", "--dry-run")
+	applyCmd2.Env = append(os.Environ(), "CHEZMOI_SOURCE_DIR="+chezmoiSource, "CHEZMOI_DATA_DIR="+chezmoiDataDir)
 	output2, _ := applyCmd2.CombinedOutput()
 	
 	// Check that theme trigger template references current_theme
-	// The output may not contain "gruvbox" directly, but we can verify the template structure
-	if len(output2) == 0 {
-		t.Log("Note: Dry-run produced no output (may be expected)")
+	if !strings.Contains(string(output2), "gruvbox") {
+		t.Error("Theme trigger template should reference current_theme from data")
 	}
 }
 
@@ -147,32 +126,22 @@ current_font: "JetBrainsMono Nerd Font"
 	os.WriteFile(chezmoiDataPath, []byte(dataContent), 0644)
 
 	// Initialize and apply
-	env := append(os.Environ(),
-		"CHEZMOI_SOURCE_DIR="+chezmoiSource,
-		"CHEZMOI_DATA_DIR="+chezmoiDataDir,
-		"HOME="+homeDir,
-	)
-	initCmd := exec.Command("chezmoi", "init", "--source", chezmoiSource, "--destination", homeDir, "--source-path", chezmoiSource)
-	initCmd.Env = env
-	if err := initCmd.Run(); err != nil {
-		t.Logf("Init may have warnings: %v", err)
-	}
+	initCmd := exec.Command("chezmoi", "init", "--source", chezmoiSource, "--destination", homeDir)
+	initCmd.Env = append(os.Environ(), "CHEZMOI_SOURCE_DIR="+chezmoiSource, "CHEZMOI_DATA_DIR="+chezmoiDataDir)
+	initCmd.Run()
 
 	// Apply and check output
-	applyCmd := exec.Command("chezmoi", "apply", "--dry-run", "--source", chezmoiSource, "--destination", homeDir)
-	applyCmd.Env = env
+	applyCmd := exec.Command("chezmoi", "apply", "--dry-run")
+	applyCmd.Env = append(os.Environ(), "CHEZMOI_SOURCE_DIR="+chezmoiSource, "CHEZMOI_DATA_DIR="+chezmoiDataDir)
 	output, err := applyCmd.CombinedOutput()
 	if err != nil {
 		t.Logf("Output: %s", string(output))
-		// Don't fail - dry-run may show expected errors
-		t.Logf("Note: Dry-run errors may be expected for missing dependencies")
+		t.Fatalf("Chezmoi apply failed: %v", err)
 	}
 
-	// Verify the theme would be applied (check template structure, not output)
-	// The template should reference current_theme variable
-	themeTriggerContent, _ := os.ReadFile(filepath.Join(chezmoiSource, "dot_config", ".theme-trigger.tmpl"))
-	if !strings.Contains(string(themeTriggerContent), "current_theme") {
-		t.Error("Theme trigger template should reference current_theme variable")
+	// Verify the theme would be applied
+	if !strings.Contains(string(output), "catppuccin") {
+		t.Error("Template should render with theme from data file")
 	}
 }
 
@@ -257,10 +226,28 @@ func TestThemeTriggerMechanism(t *testing.T) {
 
 // Helper functions
 
-// findChezmoiDirForIntegration is an alias for findChezmoiDir
-// (findChezmoiDir is defined in workflow_test.go)
 func findChezmoiDirForIntegration(t *testing.T) string {
-	return findChezmoiDir(t)
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get working directory: %v", err)
+	}
+
+	// Try different paths
+	possiblePaths := []string{
+		filepath.Join(wd, "chezmoi"),
+		filepath.Join(wd, "..", "chezmoi"),
+		filepath.Join(wd, "CONFIGS", "chezmoi"),
+		filepath.Join(wd, "..", "CONFIGS", "chezmoi"),
+	}
+
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+
+	t.Fatalf("Could not find chezmoi directory. Tried: %v", possiblePaths)
+	return ""
 }
 
 func findWaffleBinary(t *testing.T) string {
@@ -308,9 +295,13 @@ func copyTestTemplatesForIntegration(t *testing.T, srcDir, destDir string) {
 	}
 }
 
-// copyFileForIntegration is an alias for copyFile
-// (copyFile is defined in workflow_test.go)
 func copyFileForIntegration(t *testing.T, src, dest string) {
-	copyFile(t, src, dest)
+	data, err := os.ReadFile(src)
+	if err != nil {
+		t.Fatalf("Failed to read %s: %v", src, err)
+	}
+	if err := os.WriteFile(dest, data, 0644); err != nil {
+		t.Fatalf("Failed to write %s: %v", dest, err)
+	}
 }
 

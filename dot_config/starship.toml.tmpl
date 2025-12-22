@@ -1,0 +1,32 @@
+# Starship prompt configuration
+# Theme: {{ .chezmoi.current_theme | default "gruvbox" }}
+
+# Get format colors from theme (basic implementation)
+# Starship uses format strings, so we'll use a simple color scheme based on theme
+{{- $theme := .chezmoi.current_theme | default "gruvbox" }}
+
+format = """
+[╭─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $directory$git_branch$git_status [─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $nix_shell$nodejs$rust$golang$python$cmd_duration [─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $time
+[╰─](bold fg:#{{ if eq $theme "gruvbox" }}d5c4a1{{ else if eq $theme "catppuccin" }}cdd6f4{{ else if eq $theme "nord" }}d8dee9{{ else if eq $theme "tokyo-night" }}c0caf5{{ else }}d5c4a1{{ end }}) $character"""
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "fg:#{{ if eq $theme "gruvbox" }}83a598{{ else if eq $theme "catppuccin" }}89b4fa{{ else if eq $theme "nord" }}88c0d0{{ else if eq $theme "tokyo-night" }}7dcfff{{ else }}83a598{{ end }}"
+
+[git_branch]
+symbol = " "
+style = "fg:#{{ if eq $theme "gruvbox" }}b8bb26{{ else if eq $theme "catppuccin" }}a6e3a1{{ else if eq $theme "nord" }}a3be8c{{ else if eq $theme "tokyo-night" }}9ece6a{{ else }}b8bb26{{ end }}"
+
+[git_status]
+style = "fg:#{{ if eq $theme "gruvbox" }}fb4934{{ else if eq $theme "catppuccin" }}f38ba8{{ else if eq $theme "nord" }}bf616a{{ else if eq $theme "tokyo-night" }}f7768e{{ else }}fb4934{{ end }}"
+
+[time]
+format = "🕐 [$time]($style) "
+style = "fg:#{{ if eq $theme "gruvbox" }}d3869b{{ else if eq $theme "catppuccin" }}f5c2e7{{ else if eq $theme "nord" }}b48ead{{ else if eq $theme "tokyo-night" }}bb9af7{{ else }}d3869b{{ end }}"
+
+[cmd_duration]
+min_time = 2_000
+format = "took [$duration]($style) "
+style = "fg:#{{ if eq $theme "gruvbox" }}fe8019{{ else if eq $theme "catppuccin" }}fab387{{ else if eq $theme "nord" }}d08770{{ else if eq $theme "tokyo-night" }}ff9e64{{ else }}fe8019{{ end }}"
+

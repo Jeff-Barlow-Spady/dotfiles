@@ -1,0 +1,54 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "{{ if eq .chezmoi.os "windows" }}windows{{ else }}arch{{ end }}",
+    "color": {
+      "keys": [
+        {{- $theme := .chezmoi.current_theme | default "gruvbox" }}
+        {{- if eq $theme "gruvbox" }}
+        "#fb4934", "#b8bb26", "#fabd2f", "#83a598", "#d3869b", "#8ec07c", "#fe8019"
+        {{- else if eq $theme "catppuccin" }}
+        "#f38ba8", "#a6e3a1", "#f9e2af", "#89b4fa", "#f5c2e7", "#94e2d5", "#fab387"
+        {{- else if eq $theme "nord" }}
+        "#bf616a", "#a3be8c", "#ebcb8b", "#88c0d0", "#b48ead", "#8fbcbb", "#d08770"
+        {{- else if eq $theme "tokyo-night" }}
+        "#f7768e", "#9ece6a", "#e0af68", "#7dcfff", "#bb9af7", "#73daca", "#ff9e64"
+        {{- else }}
+        "#fb4934", "#b8bb26", "#fabd2f", "#83a598", "#d3869b", "#8ec07c", "#fe8019"
+        {{- end }}
+      ]
+    }
+  },
+  "display": {
+    "separator": " ~ "
+  },
+  "modules": [
+    "title",
+    "separator",
+    "os",
+    "host",
+    "kernel",
+    "uptime",
+    "packages",
+    "shell",
+    "display",
+    "de",
+    "wm",
+    "wmtheme",
+    "theme",
+    "icons",
+    "fonts",
+    "cursor",
+    "terminal",
+    "terminalfont",
+    "cpu",
+    "gpu",
+    "memory",
+    "disk",
+    "battery",
+    "locale",
+    "break",
+    "colors"
+  ]
+}
+

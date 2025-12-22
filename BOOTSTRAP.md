@@ -1,40 +1,18 @@
-# Bootstrap Commands (copy/paste)
+# Bootstrap Guide
 
-This is the “fresh machine” checklist to get from **nothing → working dotfiles**, including a Raspberry Pi test box and Windows (Scoop-first).
+Quick setup for a fresh machine (Linux/Raspberry Pi or Windows).
 
 ## Linux / Raspberry Pi
 
-### Option A: Run `setup.sh` from a clone (recommended)
-
 ```bash
-# 0) clone your repo
-git clone https://github.com/jeff-barlow-spady/dot-files.git
-cd dotfiles
-
-# 1) bootstrap prereqs + chezmoi apply
-chmod +x setup.sh
-REPO_URL="https://github.com/jeff-barlow-spady/dot-files.git" ./setup.sh
-```
-
-What it does:
-- Uses **webi** first (`webinstall.dev`)
-- Falls back to **apt** (and **snap** if present) for core tools
-- Runs `chezmoi init --apply`
-
-### Option B: Official chezmoi installer + apply (minimal)
-
-```bash
+# Install chezmoi
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 export PATH="$HOME/.local/bin:$PATH"
 
+# Initialize and apply dotfiles
 chezmoi init --apply https://github.com/jeff-barlow-spady/dot-files.git
-```
 
-### Pi: install waffle
-
-#### Option A (recommended): download from GitHub Releases on the Pi
-
-```bash
+# Install waffle (theme/font switcher)
 mkdir -p "$HOME/.local/bin"
 arch="$(uname -m)"
 case "$arch" in
@@ -52,101 +30,99 @@ url="$(curl -fsSL https://api.github.com/repos/Jeff-Barlow-Spady/waffle/releases
 curl -fsSL -o "$HOME/.local/bin/waffle" "$url"
 chmod +x "$HOME/.local/bin/waffle"
 
+# Set theme and font (then apply changes)
 waffle theme
+chezmoi apply  # Apply theme changes
 waffle font
+chezmoi apply  # Apply font changes
 ```
 
-#### Option B: copy a prebuilt from your dev machine
+## Windows
 
-```bash
-# on your dev machine (build creates waffle-linux-arm64)
-cd /home/toasty/CONFIGS/waffle
-make build-linux-arm64
-scp waffle-linux-arm64 pi@PI_HOST_OR_IP:/home/pi/.local/bin/waffle
+```powershell
+# Install Scoop (if not already installed)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+iwr -useb get.scoop.sh | iex
 
-# on the pi
-chmod +x "$HOME/.local/bin/waffle"
+# Install core tools
+scoop bucket add main
+scoop install git chezmoi gum wezterm
+
+# Initialize and apply dotfiles
+chezmoi init --apply https://github.com/jeff-barlow-spady/dot-files.git
+
+# Install waffle (theme/font switcher)
+$arch = if ($env:PROCESSOR_ARCHITECTURE -match "ARM64") { "arm64" } else { "amd64" }
+$asset = "waffle-windows-$arch.exe"
+$api = "https://api.github.com/repos/Jeff-Barlow-Spady/waffle/releases/latest"
+$release = Invoke-RestMethod -Uri $api
+$match = $release.assets | Where-Object { $_.name -eq $asset } | Select-Object -First 1
+$dest = "$env:USERPROFILE\scoop\shims\waffle.exe"
+Invoke-WebRequest -Uri $match.browser_download_url -OutFile $dest
+
+# Set theme and font (then apply changes)
 waffle theme
+chezmoi apply  # Apply theme changes
 waffle font
-```
+chezmoi apply  # Apply font changes
 
-## Windows (Scoop-first)
-
-### Base bootstrap (installs Scoop, git, chezmoi, gum, wezterm, CLI tools, languages)
-
-From a clone:
-
-```powershell
-git clone https://github.com/YOUR_USERNAME/dotfiles.git
-cd dotfiles\chezmoi
-$env:REPO_URL="https://github.com/YOUR_USERNAME/dotfiles.git"
-.\setup.ps1
-```
-
-### Base bootstrap switches
-
-- Skip WezTerm install (if you already have it):
-
-```powershell
-.\setup.ps1 -NoWezTerm
-```
-
-- Skip waffle install (if you want to install it yourself):
-
-```powershell
-.\setup.ps1 -NoWaffle
-```
-
-- Core tools only (skip CLI tools + languages):
-
-```powershell
-.\setup.ps1 -NoCliTools -NoLanguages
-```
-
-- Skip languages/toolchains:
-
-```powershell
-.\setup.ps1 -NoLanguages
-```
-
-- Skip CLI tools:
-
-```powershell
-.\setup.ps1 -NoCliTools
-```
-
-### Windows tiling (separate script)
-
-Installs: **komorebi**, **whkd**, **flow-launcher**, **hitokage**
-
-```powershell
-.\windows-tiling.ps1
-```
-
-Switches:
-
-- No Flow Launcher:
-
-```powershell
-.\windows-tiling.ps1 -NoFlowLauncher
-```
-
-- No Hitokage:
-
-```powershell
-.\windows-tiling.ps1 -NoHitokage
-```
-
-### After setup
-
-```powershell
-# apply again any time you tweak configs
-chezmoi apply
-
-# start tiling stack
+# Optional: Install Windows tiling stack (komorebi, whkd, hitokage)
+scoop install komorebi whkd flow-launcher hitokage
 komorebic.exe start
 whkd
 hitokage
 ```
+
+## After Setup
+
+### Theme and Font Switching
+
+After changing themes or fonts with waffle, always run `chezmoi apply` to apply the changes:
+
+```bash
+# Linux / Windows
+waffle theme
+chezmoi apply  # Required: Apply theme changes
+
+waffle font
+chezmoi apply  # Required: Apply font changes
+```
+
+### Updating Configs
+
+To update configs after making changes to the dotfiles repository:
+
+```bash
+# Linux / Windows
+chezmoi apply
+```
+
+### Available Configs
+
+This dotfiles setup manages configs for:
+
+**Cross-platform:**
+- WezTerm (terminal)
+- Starship (prompt)
+- Fastfetch (system info)
+- Neovim (editor)
+- btop (system monitor)
+- GitHub CLI (gh)
+- LazyGit (git TUI)
+- LazyDocker (docker TUI)
+
+**Windows-only:**
+- Komorebi (window tiler)
+- whkd (hotkey daemon)
+- Hitokage (status bar)
+- BleachBit (cleanup tool)
+
+**Linux-only:**
+- Alacritty (terminal)
+- Ghostty (terminal)
+- Zellij (multiplexer)
+- lxpanel (panel)
+- wayfire (compositor)
+- Neofetch (system info)
 
 

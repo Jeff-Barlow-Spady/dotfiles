@@ -1,3 +1,9 @@
+{{- if eq .chezmoi.os "linux" }}
+{{- $themePath := "themes/everforest/zellij.kdl" }}
+{{- if (stat $themePath) }}
+{{ readFile $themePath }}
+{{- else }}
+# Theme file not found: {{ $themePath }}
 themes {
     everforest {
         bg "#2b3339"
@@ -13,3 +19,5 @@ themes {
         orange "#FF9E64"
     }
 }
+{{- end }}
+{{- end }}

@@ -1,0 +1,62 @@
+#!/bin/bash
+# Apply wayfire theme from current theme's alacritty.toml
+# Runs when dot_config/.theme-trigger.tmpl changes (theme change)
+{{- if eq .chezmoi.os "linux" }}
+set -euo pipefail
+
+# Get theme from chezmoi data using proper path detection
+CHEZMOI_DATA=""
+if [[ -n "${CHEZMOI_DATA_DIR:-}" ]]; then
+  CHEZMOI_DATA="${CHEZMOI_DATA_DIR}/.chezmoidata.yaml"
+elif [[ -n "${XDG_DATA_HOME:-}" ]]; then
+  CHEZMOI_DATA="${XDG_DATA_HOME}/chezmoi/.chezmoidata.yaml"
+else
+  CHEZMOI_DATA="${HOME}/.local/share/chezmoi/.chezmoidata.yaml"
+fi
+
+THEME="gruvbox"
+if [[ -f "$CHEZMOI_DATA" ]]; then
+  THEME=$(grep -E '^[[:space:]]*current_theme:' "$CHEZMOI_DATA" | sed 's/.*:[[:space:]]*"\(.*\)".*/\1/' | head -1)
+fi
+THEME="${THEME:-gruvbox}"
+
+# Get chezmoi source dir
+CHEZMOI_SOURCE_DIR="${CHEZMOI_SOURCE_DIR:-${HOME}/.local/share/chezmoi}"
+if command -v chezmoi >/dev/null 2>&1; then
+  CHEZMOI_SOURCE_DIR=$(chezmoi source-path 2>/dev/null || echo "$CHEZMOI_SOURCE_DIR")
+fi
+THEME_FILE="${CHEZMOI_SOURCE_DIR}/themes/${THEME}/alacritty.toml"
+BG_FILE="${CHEZMOI_SOURCE_DIR}/themes/${THEME}/background.jpg"
+WF_CONFIG="${HOME}/.config/wayfire.ini"
+
+if [[ ! -f "$THEME_FILE" ]]; then
+  echo "Theme file not found: $THEME_FILE" >&2
+  exit 1
+fi
+
+# Extract background color from alacritty.toml (format: background = "0x282828")
+BG_COLOR=$(grep -E '^background = "0x[0-9a-fA-F]{6}"' "$THEME_FILE" | sed 's/.*"0x\([0-9a-fA-F]*\)".*/\1/' | head -1)
+
+if [[ -z "$BG_COLOR" ]]; then
+  echo "Could not extract background color from $THEME_FILE" >&2
+  exit 1
+fi
+
+# Update wayfire.ini
+if [[ -f "$WF_CONFIG" ]]; then
+  # Set background (use background.jpg if it exists, otherwise use color)
+  if [[ -f "$BG_FILE" ]]; then
+    sed -i "s|^background = .*|background = $BG_FILE|" "$WF_CONFIG" 2>/dev/null || \
+      sed -i "/^\[output\]/,/^\[/ s|^background = .*|background = $BG_FILE|" "$WF_CONFIG"
+  else
+    sed -i "s|^background-color = .*|background-color = #${BG_COLOR}|" "$WF_CONFIG" 2>/dev/null || \
+      sed -i "/^\[output\]/,/^\[/ s|^background-color = .*|background-color = #${BG_COLOR}|" "$WF_CONFIG"
+  fi
+  
+  # Reload wayfire if running
+  if pgrep -x wayfire >/dev/null; then
+    killall -SIGUSR1 wayfire 2>/dev/null || true
+  fi
+fi
+{{- end }}
+

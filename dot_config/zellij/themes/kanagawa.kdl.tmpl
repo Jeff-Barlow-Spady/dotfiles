@@ -1,3 +1,9 @@
+{{- if eq .chezmoi.os "linux" }}
+{{- $themePath := "themes/kanagawa/zellij.kdl" }}
+{{- if (stat $themePath) }}
+{{ readFile $themePath }}
+{{- else }}
+# Theme file not found: {{ $themePath }}
 themes {
     kanagawa {
         fg "#DCD7BA"
@@ -13,3 +19,5 @@ themes {
         white "#DCD7BA"
     }
 }
+{{- end }}
+{{- end }}

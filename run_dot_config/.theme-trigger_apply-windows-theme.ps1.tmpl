@@ -1,0 +1,90 @@
+# PowerShell script to apply Windows theme changes
+# Runs when dot_config/.theme-trigger.tmpl changes (theme change)
+{{- if eq .chezmoi.os "windows" }}
+#Requires -Version 5.1
+
+$ErrorActionPreference = "Stop"
+
+# Get theme from chezmoi data using proper path detection
+$chezmoiDataPath = $null
+
+# Check CHEZMOI_DATA_DIR first
+if ($env:CHEZMOI_DATA_DIR) {
+    $chezmoiDataPath = Join-Path $env:CHEZMOI_DATA_DIR ".chezmoidata.yaml"
+} elseif ($env:LOCALAPPDATA) {
+    # Windows default
+    $chezmoiDataPath = Join-Path $env:LOCALAPPDATA "chezmoi\.chezmoidata.yaml"
+} else {
+    # Fallback
+    $chezmoiDataPath = Join-Path $env:USERPROFILE ".chezmoidata.yaml"
+}
+
+$theme = "gruvbox"
+if (Test-Path $chezmoiDataPath) {
+    $content = Get-Content $chezmoiDataPath -Raw
+    if ($content -match 'current_theme:\s*"([^"]+)"') {
+        $theme = $matches[1]
+    }
+}
+
+Write-Host "Applying Windows theme: $theme" -ForegroundColor Cyan
+
+# Get chezmoi source dir
+$chezmoiSourceDir = $null
+if ($env:CHEZMOI_SOURCE_DIR) {
+    $chezmoiSourceDir = $env:CHEZMOI_SOURCE_DIR
+} else {
+    try {
+        $sourcePathOutput = chezmoi source-path 2>$null
+        if ($sourcePathOutput) {
+            $chezmoiSourceDir = $sourcePathOutput.Trim()
+        }
+    } catch {
+        # Fallback
+        if ($env:LOCALAPPDATA) {
+            $chezmoiSourceDir = Join-Path $env:LOCALAPPDATA "chezmoi"
+        } else {
+            $chezmoiSourceDir = Join-Path $env:USERPROFILE ".local\share\chezmoi"
+        }
+    }
+}
+
+if (-not $chezmoiSourceDir) {
+    Write-Error "Could not determine chezmoi source directory"
+    exit 1
+}
+
+# Theme directory (Option B path)
+$themeDir = $null
+if ($env:LOCALAPPDATA) {
+    $themeDir = Join-Path $env:LOCALAPPDATA "dotfiles\themes"
+} else {
+    $themeDir = Join-Path $env:USERPROFILE ".local\share\dotfiles\themes"
+}
+
+# Ensure theme directory exists
+if (-not (Test-Path $themeDir)) {
+    New-Item -ItemType Directory -Path $themeDir -Force | Out-Null
+}
+
+# Copy wezterm theme file if it exists in source
+$sourceThemeFile = Join-Path $chezmoiSourceDir "themes\$theme\wezterm.lua"
+$destThemeFile = Join-Path $themeDir "$theme\wezterm.lua"
+
+if (Test-Path $sourceThemeFile) {
+    $destThemeDir = Split-Path $destThemeFile -Parent
+    if (-not (Test-Path $destThemeDir)) {
+        New-Item -ItemType Directory -Path $destThemeDir -Force | Out-Null
+    }
+    Copy-Item $sourceThemeFile $destThemeFile -Force
+    Write-Host "  Updated WezTerm theme file" -ForegroundColor Green
+} else {
+    Write-Warning "Theme file not found: $sourceThemeFile"
+}
+
+# Hitokage will automatically reload when its config changes (via chezmoi template)
+# WezTerm will pick up theme changes on next window creation or reload
+
+Write-Host "Windows theme application complete" -ForegroundColor Green
+{{- end }}
+

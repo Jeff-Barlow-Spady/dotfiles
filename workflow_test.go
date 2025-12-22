@@ -44,8 +44,17 @@ func TestFullWorkflow(t *testing.T) {
 	actualChezmoiDir := findChezmoiDir(t)
 	copyMinimalTemplates(t, actualChezmoiDir, chezmoiSource)
 
-	// Step 1: Create .chezmoidata.yaml BEFORE init so templates can use it
+	// Step 1: Initialize chezmoi
+	initCmd := exec.Command("chezmoi", "init", "--source", chezmoiSource, "--destination", homeDir)
+	initCmd.Env = env
+	if err := initCmd.Run(); err != nil {
+		t.Fatalf("Failed to initialize chezmoi: %v", err)
+	}
+
+	// Step 2: Simulate waffle updating .chezmoidata.yaml
 	chezmoiDataPath := filepath.Join(chezmoiDataDir, ".chezmoidata.yaml")
+
+	// Initial theme
 	initialData := `current_theme: gruvbox
 current_font: "Agave Nerd Font"
 font_size: "14"
@@ -54,24 +63,13 @@ font_size: "14"
 		t.Fatalf("Failed to write initial data: %v", err)
 	}
 
-	// Step 2: Initialize chezmoi
-	initCmd := exec.Command("chezmoi", "init", "--source", chezmoiSource, "--destination", homeDir)
-	initCmd.Env = env
-	initOutput, err := initCmd.CombinedOutput()
-	if err != nil {
-		t.Logf("Chezmoi init output: %s", string(initOutput))
-		// Don't fail if init has warnings - it might still work
-		t.Logf("Note: Chezmoi init may have warnings but should still initialize")
-	}
-
 	// Step 3: Apply and verify initial state
-	applyCmd1 := exec.Command("chezmoi", "apply", "--dry-run", "--source", chezmoiSource, "--destination", homeDir)
+	applyCmd1 := exec.Command("chezmoi", "apply", "--dry-run")
 	applyCmd1.Env = env
 	output1, err := applyCmd1.CombinedOutput()
 	if err != nil {
 		t.Logf("Initial apply output: %s", string(output1))
-		// Don't fail on dry-run - may have expected errors
-		t.Logf("Note: Dry-run may show expected errors for missing dependencies")
+		t.Fatalf("Initial chezmoi apply failed: %v", err)
 	}
 
 	// Step 4: Simulate waffle changing theme (like user running `waffle theme`)
@@ -84,28 +82,34 @@ font_size: "14"
 	}
 
 	// Step 5: Apply again and verify theme changed
-	applyCmd2 := exec.Command("chezmoi", "apply", "--dry-run", "--source", chezmoiSource, "--destination", homeDir)
+	applyCmd2 := exec.Command("chezmoi", "apply", "--dry-run")
 	applyCmd2.Env = env
 	output2, err := applyCmd2.CombinedOutput()
 	if err != nil {
 		t.Logf("Second apply output: %s", string(output2))
-		t.Logf("Note: Dry-run errors may be expected")
+		t.Fatalf("Second chezmoi apply failed: %v", err)
 	}
 
-	// Verify the theme change would be reflected in templates
-	// Check that the data file was updated
-	dataContent, _ := os.ReadFile(chezmoiDataPath)
-	if !strings.Contains(string(dataContent), "catppuccin") {
-		t.Error("Data file should contain new theme 'catppuccin'")
+	// Verify the theme change is reflected
+	if !strings.Contains(string(output2), "catppuccin") {
+		t.Error("Template output should reflect new theme 'catppuccin'")
 	}
 
-	// Verify theme trigger template would render with new theme
-	// (We don't actually apply to avoid side effects, but verify the mechanism)
-	themeTriggerTemplate := filepath.Join(chezmoiSource, "dot_config", ".theme-trigger.tmpl")
-	if _, err := os.Stat(themeTriggerTemplate); err == nil {
-		content, _ := os.ReadFile(themeTriggerTemplate)
-		if !strings.Contains(string(content), "current_theme") {
-			t.Error("Theme trigger template should reference current_theme variable")
+	// Verify theme trigger would change
+	themeTriggerPath := filepath.Join(homeDir, ".config", ".theme-trigger")
+
+	// Actually apply to see the file
+	applyCmd3 := exec.Command("chezmoi", "apply")
+	applyCmd3.Env = env
+	if err := applyCmd3.Run(); err != nil {
+		t.Logf("Actual apply may have failed (expected if run scripts fail): %v", err)
+	}
+
+	// Check if theme trigger file was created/updated
+	if _, err := os.Stat(themeTriggerPath); err == nil {
+		content, _ := os.ReadFile(themeTriggerPath)
+		if !strings.Contains(string(content), "catppuccin") {
+			t.Error("Theme trigger file should contain new theme")
 		}
 	}
 }
@@ -121,11 +125,11 @@ func TestRunScriptExecution(t *testing.T) {
 	}
 
 	chezmoiDir := findChezmoiDir(t)
-	
+
 	// Verify run scripts exist and have correct naming
 	runScripts := []struct {
-		path     string
-		os       string
+		path       string
+		os         string
 		hasOSCheck bool
 	}{
 		{"run_dot_config/.theme-trigger_apply-lxpanel-theme.sh.tmpl", "linux", true},
@@ -157,14 +161,15 @@ func TestRunScriptExecution(t *testing.T) {
 		}
 
 		// Verify path detection (not hardcoded)
-		if script.os == "linux" {
+		switch script.os {
+		case "linux":
 			if strings.Contains(contentStr, "${HOME}/.local/share/chezmoi/.chezmoidata.yaml") &&
-			   !strings.Contains(contentStr, "CHEZMOI_DATA_DIR") {
+				!strings.Contains(contentStr, "CHEZMOI_DATA_DIR") {
 				t.Errorf("Script %s has hardcoded path instead of using CHEZMOI_DATA_DIR", script.path)
 			}
-		} else if script.os == "windows" {
+		case "windows":
 			if strings.Contains(contentStr, "$env:LOCALAPPDATA\\chezmoi") &&
-			   !strings.Contains(contentStr, "CHEZMOI_DATA_DIR") {
+				!strings.Contains(contentStr, "CHEZMOI_DATA_DIR") {
 				t.Errorf("Script %s has hardcoded path instead of using CHEZMOI_DATA_DIR", script.path)
 			}
 		}
@@ -200,18 +205,15 @@ func TestOSIsolation(t *testing.T) {
 	}
 
 	// Linux-only configs
-	linuxConfigs := []struct {
-		path        string
-		hasComplexCondition bool // Some have complex conditions like "and (eq .chezmoi.os "linux")"
-	}{
-		{"dot_config/lxpanel/default/panel.tmpl", false},
-		{"dot_config/wayfire.ini.tmpl", false},
-		{"dot_config/zellij/config.kdl.tmpl", false},
-		{"dot_config/ghostty/config.tmpl", true}, // Has complex condition
+	linuxConfigs := []string{
+		"dot_config/lxpanel/default/panel.tmpl",
+		"dot_config/wayfire.ini.tmpl",
+		"dot_config/zellij/config.kdl.tmpl",
+		"dot_config/ghostty/config.tmpl",
 	}
 
 	for _, config := range linuxConfigs {
-		configPath := filepath.Join(chezmoiDir, config.path)
+		configPath := filepath.Join(chezmoiDir, config)
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			continue
 		}
@@ -222,11 +224,8 @@ func TestOSIsolation(t *testing.T) {
 		}
 
 		contentStr := string(content)
-		hasSimpleCondition := strings.Contains(contentStr, `{{- if eq .chezmoi.os "linux" }}`)
-		hasComplexCondition := strings.Contains(contentStr, `eq .chezmoi.os "linux"`)
-		
-		if !hasSimpleCondition && !hasComplexCondition {
-			t.Errorf("Linux config %s missing OS condition for linux", config.path)
+		if !strings.Contains(contentStr, `{{- if eq .chezmoi.os "linux" }}`) {
+			t.Errorf("Linux config %s missing OS condition", config)
 		}
 	}
 }
@@ -240,7 +239,7 @@ func copyMinimalTemplates(t *testing.T, srcDir, destDir string) {
 	for _, relPath := range templates {
 		srcPath := filepath.Join(srcDir, relPath)
 		destPath := filepath.Join(destDir, relPath)
-		
+
 		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
 			continue
 		}
@@ -290,4 +289,3 @@ func copyFile(t *testing.T, src, dest string) {
 		t.Fatalf("Failed to write %s: %v", dest, err)
 	}
 }
-

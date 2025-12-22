@@ -1,0 +1,39 @@
+{{- if eq .chezmoi.os "linux" }}
+# LXPanel config - updated by run_onchange script
+# Theme: {{ .chezmoi.current_theme | default "gruvbox" }}
+# This file is managed by chezmoi and updated via run_onchange_apply-lxpanel-theme.sh
+Global {
+    edge=bottom
+    width=100
+    height=24
+    transparent=1
+    tintcolor=#000000
+    alpha=200
+    autohide=0
+    heightwhenhidden=2
+    setdocktype=1
+    setpartialstrut=1
+    usefontcolor=1
+    fontcolor=#ffffff
+    backgroundfile=
+    iconsize=22
+}
+
+Plugin {
+    type=menu
+    Config {
+        image={{ .chezmoi.current_theme | default "gruvbox" }}
+        system {
+        }
+        separator {
+        }
+    }
+}
+
+Plugin {
+    type=space
+    Config {
+        Size=4
+    }
+}
+{{- end }}

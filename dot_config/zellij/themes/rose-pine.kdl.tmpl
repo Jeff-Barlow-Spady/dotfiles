@@ -1,3 +1,9 @@
+{{- if eq .chezmoi.os "linux" }}
+{{- $themePath := "themes/rose-pine/zellij.kdl" }}
+{{- if (stat $themePath) }}
+{{ readFile $themePath }}
+{{- else }}
+# Theme file not found: {{ $themePath }}
 themes {
 	rose-pine {
 		bg "#faf4ed"
@@ -13,3 +19,5 @@ themes {
 		white "#575279"
 	}
 }
+{{- end }}
+{{- end }}

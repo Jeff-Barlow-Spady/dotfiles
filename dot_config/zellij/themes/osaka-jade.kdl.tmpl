@@ -1,3 +1,9 @@
+{{- if eq .chezmoi.os "linux" }}
+{{- $themePath := "themes/osaka-jade/zellij.kdl" }}
+{{- if (stat $themePath) }}
+{{ readFile $themePath }}
+{{- else }}
+# Theme file not found: {{ $themePath }}
 themes {
     osaka-jade {
         fg "#C1C497"
@@ -12,4 +18,5 @@ themes {
         orange "#E5C736"
         white "#F6F5DD"
     }
-}
+}{{- end }}
+{{- end }}

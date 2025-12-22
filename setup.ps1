@@ -59,7 +59,14 @@ if (-not $NoLanguages) {
 Write-Host ""
 if ($RepoUrl) {
   Write-Host "Initializing chezmoi from $RepoUrl ..." -ForegroundColor Yellow
-  chezmoi init --apply $RepoUrl
+  # If already initialized, just apply; otherwise init
+  $chezmoiSource = "$env:LOCALAPPDATA\chezmoi"
+  if ((Test-Path $chezmoiSource) -or $env:CHEZMOI_SOURCE_DIR) {
+    Write-Host "Chezmoi already initialized, applying changes..." -ForegroundColor Yellow
+    chezmoi apply
+  } else {
+    chezmoi init --apply $RepoUrl
+  }
 } else {
   Write-Host "Repo URL not provided." -ForegroundColor Yellow
   Write-Host "Run:" -ForegroundColor Yellow

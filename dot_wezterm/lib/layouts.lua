@@ -12,37 +12,11 @@ local function is_windows(wezterm)
   return wezterm.target_triple and wezterm.target_triple:find('windows') ~= nil
 end
 
-function M.shell_args(wezterm, cmd)
-  -- WezTerm on Windows should generally drive WSL for dev workflows.
-  if is_windows(wezterm) then
-    return { 'wsl.exe', '--', 'bash', '-lc', cmd }
-  end
-  return { 'bash', '-lc', cmd }
-end
 
-function M.hint_cmd(lines)
-  local text
-  if type(lines) == 'table' then
-    text = table.concat(lines, '\n')
-  else
-    text = tostring(lines or '')
-  end
-
-  -- Use a single-quoted heredoc delimiter so we don't need to escape anything.
-  return table.concat({
-    "cat <<'WAFFLE_HINT'",
-    text,
-    "WAFFLE_HINT",
-    "echo",
-    "exec ${SHELL:-bash} -l",
-  }, "\n")
-end
-
-function M.split(wezterm, window, pane, direction, size, cmd)
+function M.split(wezterm, window, pane, direction, size)
   local action = wezterm.action.SplitPane({
     direction = direction,
     size = size,
-    command = cmd and { args = M.shell_args(wezterm, cmd) } or nil,
   })
   window:perform_action(action, pane)
   return window:active_pane()

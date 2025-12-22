@@ -1,0 +1,16 @@
+{{- if eq .chezmoi.os "linux" }}
+# Wayfire config - updated by run_onchange script
+# Theme: {{ .chezmoi.current_theme | default "gruvbox" }}
+# This file is managed by chezmoi and updated via run_onchange_apply-wayfire-theme.sh
+[core]
+plugins = wayfire
+
+[output]
+# Background and colors set by run_onchange script
+
+[input]
+# Input configuration
+
+[wf-shell]
+panel = lxpanel
+{{- end }}

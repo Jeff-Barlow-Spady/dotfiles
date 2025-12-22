@@ -1,0 +1,8 @@
+{{- if eq .chezmoi.os "linux" }}
+theme "{{ .chezmoi.current_theme | default "gruvbox" }}"
+
+default_shell "bash"
+
+layouts_dir "~/.config/zellij/layouts"
+{{- end }}
+

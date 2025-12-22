@@ -1,3 +1,9 @@
+{{- if eq .chezmoi.os "linux" }}
+{{- $themePath := "themes/gruvbox/zellij.kdl" }}
+{{- if (stat $themePath) }}
+{{ readFile $themePath }}
+{{- else }}
+# Theme file not found: {{ $themePath }}
 themes {
     gruvbox {
         fg "#d5c4a1"
@@ -13,3 +19,5 @@ themes {
         orange "#d65d0e"
     }
 }
+{{- end }}
+{{- end }}

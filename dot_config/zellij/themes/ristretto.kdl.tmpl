@@ -1,3 +1,9 @@
+{{- if eq .chezmoi.os "linux" }}
+{{- $themePath := "themes/ristretto/zellij.kdl" }}
+{{- if (stat $themePath) }}
+{{ readFile $themePath }}
+{{- else }}
+# Theme file not found: {{ $themePath }}
 themes {
     ristretto {
         fg "#e6d9db"
@@ -13,3 +19,5 @@ themes {
         white "#e6d9db"
     }
 }
+{{- end }}
+{{- end }}
