@@ -78,16 +78,21 @@ if (-not $NoHitokage) {
     }
   }
   
-  # Method 3: Check common installation paths
+  # Method 3: Check common installation paths (look for bin/hitokage.exe)
   if (-not $hitokageInstalled) {
     $commonPaths = @(
-      "$env:ProgramFiles\Hitokage",
-      "${env:ProgramFiles(x86)}\Hitokage",
-      "$env:LOCALAPPDATA\Programs\Hitokage"
+      "$env:ProgramFiles\Hitokage\bin",
+      "${env:ProgramFiles(x86)}\Hitokage\bin",
+      "$env:LOCALAPPDATA\Programs\Hitokage\bin"
     )
     foreach ($path in $commonPaths) {
-      if (Test-Path $path) {
-        Write-Host "✅ Hitokage installation directory found at: $path" -ForegroundColor Green
+      if (Test-Path "$path\hitokage.exe") {
+        Write-Host "✅ Hitokage installation found at: $path" -ForegroundColor Green
+        # Add to PATH for this session if not already there
+        if ($env:PATH -notlike "*$path*") {
+          Write-Host "   Adding to PATH for this session..." -ForegroundColor Cyan
+          $env:PATH += ";$path"
+        }
         $hitokageInstalled = $true
         break
       }
@@ -130,27 +135,63 @@ if (-not $NoHitokage) {
       if ($exitCode -eq 0 -or $exitCode -eq 3010) {
         Write-Host "✅ Hitokage MSI installation completed (exit code: $exitCode)" -ForegroundColor Green
         
-        # Wait a moment for installation to complete and PATH to update
-        Start-Sleep -Seconds 2
+        # Wait a moment for installation to complete
+        Start-Sleep -Seconds 3
+        
+        # Find hitokage installation directory
+        $hitokageBinPath = $null
+        $searchPaths = @(
+          "$env:ProgramFiles\Hitokage\bin",
+          "${env:ProgramFiles(x86)}\Hitokage\bin",
+          "$env:LOCALAPPDATA\Programs\Hitokage\bin"
+        )
+        
+        foreach ($path in $searchPaths) {
+          if (Test-Path "$path\hitokage.exe") {
+            $hitokageBinPath = $path
+            break
+          }
+        }
         
         # Verify installation
         $verifyInstalled = $false
         if (Have "hitokage") {
           Write-Host "✅ Hitokage command is now available" -ForegroundColor Green
           $verifyInstalled = $true
+        } elseif ($hitokageBinPath) {
+          Write-Host "✅ Hitokage installed at: $hitokageBinPath" -ForegroundColor Green
+          Write-Host "   Adding to PATH for this session..." -ForegroundColor Cyan
+          $env:PATH += ";$hitokageBinPath"
+          
+          # Test if it works now
+          if (Have "hitokage") {
+            Write-Host "✅ Hitokage command is now available in this session" -ForegroundColor Green
+            $verifyInstalled = $true
+          } else {
+            Write-Host "⚠️  Could not verify hitokage command" -ForegroundColor Yellow
+          }
+          
+          # Add to user PATH permanently (requires user confirmation or elevation)
+          Write-Host ""
+          Write-Host "   To make this permanent, add to your PATH:" -ForegroundColor Yellow
+          Write-Host "   $hitokageBinPath" -ForegroundColor Cyan
+          Write-Host ""
+          Write-Host "   Or restart your terminal - the MSI installer should have added it to PATH" -ForegroundColor Cyan
+          $verifyInstalled = $true
         } else {
-          # Check registry again
+          # Check registry as fallback
           $installed = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue | 
                        Where-Object { $_.DisplayName -like "*hitokage*" -or $_.DisplayName -like "*Hitokage*" }
           if ($installed) {
-            Write-Host "✅ Hitokage installed, but command may not be in PATH yet" -ForegroundColor Yellow
-            Write-Host "   You may need to restart your terminal or add it to PATH manually" -ForegroundColor Yellow
+            Write-Host "✅ Hitokage found in installed programs" -ForegroundColor Green
+            Write-Host "   However, executable location could not be determined" -ForegroundColor Yellow
+            Write-Host "   You may need to restart your terminal or locate hitokage.exe manually" -ForegroundColor Yellow
             $verifyInstalled = $true
           }
         }
         
         if (-not $verifyInstalled) {
-          Write-Host "⚠️  Installation completed but hitokage command not found" -ForegroundColor Yellow
+          Write-Host "⚠️  Installation completed but hitokage could not be verified" -ForegroundColor Yellow
           Write-Host "   You may need to restart your terminal or check installation manually" -ForegroundColor Yellow
         }
       } else {
