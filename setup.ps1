@@ -1,16 +1,18 @@
 <#  Bootstrap script for a fresh Windows machine (PowerShell).
     Uses Scoop (preferred) to install git/chezmoi/gum/wezterm and common dev tools.
+    Languages are NOT installed by default (use -Languages to opt-in).
 
     Usage:
       $env:REPO_URL="https://github.com/YOUR_USERNAME/dotfiles.git"; .\setup.ps1
       .\setup.ps1 -RepoUrl "https://github.com/YOUR_USERNAME/dotfiles.git"
+      .\setup.ps1 -RepoUrl "..." -Languages  # Include language toolchains
 #>
 
 param(
   [string]$RepoUrl = $env:REPO_URL,
   [switch]$NoCore,
   [switch]$NoCliTools,
-  [switch]$NoLanguages,
+  [switch]$Languages,
   [switch]$NoWezTerm,
   [switch]$NoWaffle,
   [string]$WaffleRepo = "Jeff-Barlow-Spady/waffle"
@@ -49,11 +51,14 @@ if (-not $NoCliTools) {
   Write-Host "Skipping CLI tools (-NoCliTools)" -ForegroundColor Yellow
 }
 
-if (-not $NoLanguages) {
+if ($Languages) {
   Write-Host "Installing dev languages/toolchains..." -ForegroundColor Yellow
+  Write-Host "  Note: Python is included here. If you use a Python install manager (pyenv, etc.)," -ForegroundColor Yellow
+  Write-Host "  you may want to skip this section and install languages manually." -ForegroundColor Yellow
   scoop install go nodejs python dotnet-sdk rustup | Out-Null
 } else {
-  Write-Host "Skipping languages/toolchains (-NoLanguages)" -ForegroundColor Yellow
+  Write-Host "Skipping languages/toolchains (use -Languages to install)" -ForegroundColor Yellow
+  Write-Host "  This allows you to use your preferred install managers (e.g., pyenv for Python)" -ForegroundColor Cyan
 }
 
 Write-Host ""

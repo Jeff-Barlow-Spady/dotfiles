@@ -1,0 +1,12 @@
+{{- if eq .chezmoi.os "linux" }}
+# ~/.zshrc - managed by chezmoi
+
+# Show system info on terminal launch
+if command -v fastfetch >/dev/null 2>&1; then
+  fastfetch
+elif command -v neofetch >/dev/null 2>&1; then
+  neofetch
+fi
+
+{{- end }}
+

@@ -1,0 +1,11 @@
+{{- if eq .chezmoi.os "windows" }}
+# PowerShell profile - managed by chezmoi
+
+# Show system info on terminal launch
+if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
+    fastfetch
+} elseif (Get-Command neofetch -ErrorAction SilentlyContinue) {
+    neofetch
+}
+{{- end }}
+
