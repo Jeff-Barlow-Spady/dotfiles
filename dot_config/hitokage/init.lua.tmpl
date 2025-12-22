@@ -111,7 +111,6 @@ local monitors = hitokage.monitor.get_all()
 
 local bars = {}
 local reactive_labels = {}
-local reactive_imgs = {}
 
 local clock_icons = {
   "\u{F144A}", "\u{F143F}", "\u{F1440}", "\u{F1441}",
@@ -127,11 +126,9 @@ for _, monitor in ipairs(monitors) do
   end
 
   local reactive_label = hitokage.unstable.reactive.create("foo \u{EECB}")
-  local reactive_img = hitokage.unstable.reactive.create("./smiley.png")
   local reactive_clock_icon = hitokage.unstable.reactive.create(clock_icons[tonumber(os.date("%H")) % 12 + 1])
 
   table.insert(reactive_labels, reactive_label)
-  table.insert(reactive_imgs, reactive_img)
   table.insert(reactive_clock_icons, reactive_clock_icon)
 
   -- NOTE: chezmoi templates don't provide `pad`; use printf for stable width formatting.
