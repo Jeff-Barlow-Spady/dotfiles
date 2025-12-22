@@ -205,15 +205,18 @@ func TestOSIsolation(t *testing.T) {
 	}
 
 	// Linux-only configs
-	linuxConfigs := []string{
-		"dot_config/lxpanel/default/panel.tmpl",
-		"dot_config/wayfire.ini.tmpl",
-		"dot_config/zellij/config.kdl.tmpl",
-		"dot_config/ghostty/config.tmpl",
+	linuxConfigs := []struct {
+		path                string
+		hasComplexCondition bool // Some have complex conditions like "and (eq .chezmoi.os "linux")"
+	}{
+		{"dot_config/lxpanel/default/panel.tmpl", false},
+		{"dot_config/wayfire.ini.tmpl", false},
+		{"dot_config/zellij/config.kdl.tmpl", false},
+		{"dot_config/ghostty/config.tmpl", true}, // Has complex condition
 	}
 
 	for _, config := range linuxConfigs {
-		configPath := filepath.Join(chezmoiDir, config)
+		configPath := filepath.Join(chezmoiDir, config.path)
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			continue
 		}
@@ -224,8 +227,11 @@ func TestOSIsolation(t *testing.T) {
 		}
 
 		contentStr := string(content)
-		if !strings.Contains(contentStr, `{{- if eq .chezmoi.os "linux" }}`) {
-			t.Errorf("Linux config %s missing OS condition", config)
+		hasSimpleCondition := strings.Contains(contentStr, `{{- if eq .chezmoi.os "linux" }}`)
+		hasComplexCondition := strings.Contains(contentStr, `eq .chezmoi.os "linux"`)
+
+		if !hasSimpleCondition && !hasComplexCondition {
+			t.Errorf("Linux config %s missing OS condition for linux", config.path)
 		}
 	}
 }

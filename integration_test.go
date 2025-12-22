@@ -80,7 +80,7 @@ font_size: "14"
 	applyCmd2 := exec.Command("chezmoi", "apply", "--dry-run")
 	applyCmd2.Env = append(os.Environ(), "CHEZMOI_SOURCE_DIR="+chezmoiSource, "CHEZMOI_DATA_DIR="+chezmoiDataDir)
 	output2, _ := applyCmd2.CombinedOutput()
-	
+
 	// Check that theme trigger template references current_theme
 	if !strings.Contains(string(output2), "gruvbox") {
 		t.Error("Theme trigger template should reference current_theme from data")
@@ -148,7 +148,7 @@ current_font: "JetBrainsMono Nerd Font"
 // TestRunScriptNaming tests that run scripts follow chezmoi naming conventions
 func TestRunScriptNaming(t *testing.T) {
 	chezmoiDir := findChezmoiDirForIntegration(t)
-	
+
 	// Check for correctly named run scripts
 	expectedScripts := []string{
 		"run_dot_config/.theme-trigger_apply-lxpanel-theme.sh.tmpl",
@@ -217,8 +217,8 @@ func TestThemeTriggerMechanism(t *testing.T) {
 
 		// Scripts should reference the theme trigger file in comments
 		// or be named to trigger on it
-		if !strings.Contains(string(content), "theme-trigger") && 
-		   !strings.Contains(string(content), "theme change") {
+		if !strings.Contains(string(content), "theme-trigger") &&
+			!strings.Contains(string(content), "theme change") {
 			t.Logf("Warning: Run script %s may not reference theme trigger mechanism", script)
 		}
 	}
@@ -250,7 +250,7 @@ func findChezmoiDirForIntegration(t *testing.T) string {
 	return ""
 }
 
-func findWaffleBinary(t *testing.T) string {
+func findWaffleBinary(_ *testing.T) string {
 	// Try to find waffle in PATH
 	if path, err := exec.LookPath("waffle"); err == nil {
 		return path
@@ -285,7 +285,7 @@ func copyTestTemplatesForIntegration(t *testing.T, srcDir, destDir string) {
 	for _, relPath := range templates {
 		srcPath := filepath.Join(srcDir, relPath)
 		destPath := filepath.Join(destDir, relPath)
-		
+
 		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
 			continue
 		}
@@ -304,4 +304,3 @@ func copyFileForIntegration(t *testing.T, src, dest string) {
 		t.Fatalf("Failed to write %s: %v", dest, err)
 	}
 }
-
