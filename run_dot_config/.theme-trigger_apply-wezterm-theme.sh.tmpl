@@ -35,5 +35,20 @@ if [[ -f "$SOURCE_THEME_FILE" ]]; then
 else
   echo "Warning: Theme file not found: $SOURCE_THEME_FILE" >&2
 fi
+
+# Also copy all other themes on first run (if themes directory is empty or missing)
+if [[ ! -d "$THEME_DIR" ]] || [[ -z "$(ls -A "$THEME_DIR" 2>/dev/null)" ]]; then
+  echo "Copying all available themes..."
+  for theme_dir in "${CHEZMOI_SOURCE_DIR}/themes"/*/; do
+    if [[ -d "$theme_dir" ]]; then
+      theme_name=$(basename "$theme_dir")
+      if [[ -f "${theme_dir}wezterm.lua" ]]; then
+        mkdir -p "${THEME_DIR}/${theme_name}"
+        cp "${theme_dir}wezterm.lua" "${THEME_DIR}/${theme_name}/wezterm.lua"
+        echo "Copied theme: $theme_name"
+      fi
+    fi
+  done
+fi
 {{- end }}
 
