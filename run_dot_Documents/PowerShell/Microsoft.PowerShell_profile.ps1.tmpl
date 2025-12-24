@@ -1,0 +1,14 @@
+# Run script: Copy PowerShell 7 profile to Documents (where PowerShell expects it)
+# Runs after dot_Documents/PowerShell/Microsoft.PowerShell_profile.ps1.tmpl is applied
+{{- if eq .chezmoi.os "windows" }}
+$source = Join-Path $env:USERPROFILE ".Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+$dest = Join-Path $env:USERPROFILE "Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+
+if (Test-Path $source) {
+    $destDir = Split-Path $dest -Parent
+    if (-not (Test-Path $destDir)) {
+        New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+    }
+    Copy-Item $source $dest -Force
+}
+{{- end }}
