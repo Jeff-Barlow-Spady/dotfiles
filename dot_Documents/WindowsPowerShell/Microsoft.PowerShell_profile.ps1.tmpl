@@ -1,6 +1,11 @@
 {{- if eq .chezmoi.os "windows" }}
 # PowerShell profile - managed by chezmoi
 
+# Initialize Starship prompt
+if (Get-Command starship -ErrorAction SilentlyContinue) {
+    Invoke-Expression (&starship init powershell)
+}
+
 # Show system info on terminal launch
 if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
     fastfetch
