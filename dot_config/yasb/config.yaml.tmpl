@@ -1,0 +1,49 @@
+# YASB Configuration for Komorebi (chezmoi template)
+# Theme-aware configuration with Komorebi integration
+{{- if eq .chezmoi.os "windows" }}
+general:
+  update_interval: 1000
+  font_family: "MesloLGS NF"
+  font_size: 12
+  bar_height: 24
+  position: "top"
+  blur_effect: true
+  transparency: 0.0
+
+komorebi:
+  start_command: "komorebic start --whkd"
+  stop_command: "komorebic stop --whkd"
+  reload_command: "komorebic reload-configuration"
+
+bars:
+  primary-bar:
+    enabled: true
+    screens: ['*']
+    widgets:
+      left:
+        - type: komorebi_workspaces
+          format: "{index}"
+          active_format: "[{index}]"
+          separator: " "
+        - type: separator
+          width: 10
+      
+      center:
+        - type: clock
+          format: "%a %b %e"
+          icon: "\u{F00ED}"
+        - type: clock
+          format: "%r"
+          icon: "\u{F144A}"
+      
+      right:
+        - type: memory
+          format: "{used:.1f} GB ({percent:.1f}%)"
+          icon: "\u{EFC5}"
+        - type: separator
+          width: 5
+        - type: cpu
+          format: "{usage:.1f}%"
+          icon: "\u{F4BC}"
+{{- end }}
+

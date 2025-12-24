@@ -1,0 +1,136 @@
+/* YASB Styles - Theme-aware (chezmoi template)
+ * Colors are injected based on current theme
+ */
+{{- if eq .chezmoi.os "windows" }}
+{{- $theme := index .chezmoi "current_theme" | default "gruvbox" }}
+{{- $fg := "d4be98" }}
+{{- $bg := "282828" }}
+{{- $sel_bg := "d3869b" }}
+{{- $sel_fg := "282828" }}
+{{- $border := "3c3836" }}
+{{- if eq $theme "catppuccin" }}
+  {{- $fg = "cad3f5" }}
+  {{- $bg = "24273a" }}
+  {{- $sel_bg = "f5bde6" }}
+  {{- $sel_fg = "24273a" }}
+  {{- $border = "494d64" }}
+{{- else if eq $theme "nord" }}
+  {{- $fg = "d8dee9" }}
+  {{- $bg = "2e3440" }}
+  {{- $sel_bg = "81a1c1" }}
+  {{- $sel_fg = "2e3440" }}
+  {{- $border = "4c566a" }}
+{{- else if eq $theme "tokyo-night" }}
+  {{- $fg = "a9b1d6" }}
+  {{- $bg = "1a1b26" }}
+  {{- $sel_bg = "7aa2f7" }}
+  {{- $sel_fg = "1a1b26" }}
+  {{- $border = "32344a" }}
+{{- else if eq $theme "everforest" }}
+  {{- $fg = "d3c6aa" }}
+  {{- $bg = "2d353b" }}
+  {{- $sel_bg = "a7c080" }}
+  {{- $sel_fg = "2d353b" }}
+  {{- $border = "475258" }}
+{{- else if eq $theme "kanagawa" }}
+  {{- $fg = "dcd7ba" }}
+  {{- $bg = "1f1f28" }}
+  {{- $sel_bg = "2d4f67" }}
+  {{- $sel_fg = "1f1f28" }}
+  {{- $border = "090618" }}
+{{- else if eq $theme "matte-black" }}
+  {{- $fg = "bebebe" }}
+  {{- $bg = "121212" }}
+  {{- $sel_bg = "333333" }}
+  {{- $sel_fg = "121212" }}
+  {{- $border = "333333" }}
+{{- else if eq $theme "osaka-jade" }}
+  {{- $fg = "c1c497" }}
+  {{- $bg = "111c18" }}
+  {{- $sel_bg = "23372b" }}
+  {{- $sel_fg = "111c18" }}
+  {{- $border = "23372b" }}
+{{- else if eq $theme "ristretto" }}
+  {{- $fg = "e6d9db" }}
+  {{- $bg = "2c2525" }}
+  {{- $sel_bg = "403e41" }}
+  {{- $sel_fg = "2c2525" }}
+  {{- $border = "463a3a" }}
+{{- else if eq $theme "rose-pine" }}
+  {{- $fg = "575279" }}
+  {{- $bg = "faf4ed" }}
+  {{- $sel_bg = "dfdad9" }}
+  {{- $sel_fg = "575279" }}
+  {{- $border = "9893a5" }}
+{{- end }}
+
+.yasb-bar {
+  background-color: rgba(0, 0, 0, 0.0);
+  color: #{{ $fg }};
+  font-family: 'MesloLGS NF', 'Courier New', monospace;
+  font-size: 12px;
+  min-height: 24px;
+  padding: 0 8px;
+}
+
+.yasb-widget {
+  padding: 0 4px;
+}
+
+.yasb-widget-separator {
+  color: #{{ $border }};
+  opacity: 0.4;
+}
+
+/* Komorebi Workspaces */
+.yasb-komorebi-workspaces {
+  padding: 0;
+}
+
+.yasb-komorebi-workspace {
+  padding: 2px 6px;
+  margin: 0 2px;
+  border: 1px solid #{{ $border }};
+  opacity: 0.6;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: #{{ $fg }};
+  border-radius: 2px;
+  transition: all 200ms;
+}
+
+.yasb-komorebi-workspace.active {
+  opacity: 1.0;
+  border: 1px solid #{{ $sel_bg }};
+  background-color: #{{ $sel_bg }};
+  color: #{{ $sel_fg }};
+  font-weight: bold;
+}
+
+/* Clock */
+.yasb-clock {
+  color: #{{ $fg }};
+}
+
+.yasb-clock-icon {
+  margin-right: 4px;
+}
+
+/* CPU */
+.yasb-cpu {
+  color: #{{ $fg }};
+}
+
+.yasb-cpu-icon {
+  margin-right: 4px;
+}
+
+/* Memory */
+.yasb-memory {
+  color: #{{ $fg }};
+}
+
+.yasb-memory-icon {
+  margin-right: 4px;
+}
+{{- end }}
+
