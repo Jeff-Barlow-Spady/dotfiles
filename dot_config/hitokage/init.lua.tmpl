@@ -137,9 +137,9 @@ for _, monitor in ipairs(monitors) do
   local mem_str = '{{ "{{" }} printf "%4.1f" (div used 1024) {{ "}}" }} ({{ "{{" }} printf "%4.1f%%" (mult (div used total) 100) {{ "}}" }})'
   local cpu_str = '{{ "{{" }} printf "%6.1f%%" (mult usage 100) {{ "}}" }}'
 
-  table.insert(
-    bars,
-    hitokage.bar.create(monitor, {
+  -- Wrap bar creation in error handling to catch monitor geometry errors
+  local ok, bar = pcall(function()
+    return hitokage.bar.create(monitor, {
       widgets = {
         {
           Box = {
@@ -210,7 +210,13 @@ for _, monitor in ipairs(monitors) do
       },
       homogeneous = true,
     })
-  )
+  end)
+  
+  if ok and bar then
+    table.insert(bars, bar)
+  else
+    hitokage.log_error("Failed to create bar for monitor: " .. tostring(monitor.model) .. " (" .. tostring(monitor.geometry.width) .. "x" .. tostring(monitor.geometry.height) .. ") - " .. tostring(bar))
+  end
   ::continue::
 end
 
@@ -218,24 +224,36 @@ local workspaces = {}
 local clocks = {}
 local boxes = {}
 
-for i, bar in ipairs(bars) do
-  while not bar:is_ready() do
-    hitokage.debug("waiting for bar to instantiate", i)
-    coroutine.yield()
-  end
-  for _, widget in ipairs(bar:get_widgets()) do
-    hitokage.debug(widget)
-    if widget.type == "Clock" then
-      table.insert(clocks, widget)
+-- Initialize bars asynchronously to avoid deadlocks
+local function initialize_bars()
+  for i, bar in ipairs(bars) do
+    local max_retries = 100
+    local retries = 0
+    while not bar:is_ready() and retries < max_retries do
+      hitokage.debug("waiting for bar to instantiate", i)
+      coroutine.yield()
+      retries = retries + 1
     end
-    if widget.type == "Workspace" then
-      table.insert(workspaces, widget)
-    end
-    if widget.type == "Box" then
-      table.insert(boxes, widget)
+    if bar:is_ready() then
+      for _, widget in ipairs(bar:get_widgets()) do
+        hitokage.debug(widget)
+        if widget.type == "Clock" then
+          table.insert(clocks, widget)
+        end
+        if widget.type == "Workspace" then
+          table.insert(workspaces, widget)
+        end
+        if widget.type == "Box" then
+          table.insert(boxes, widget)
+        end
+      end
+    else
+      hitokage.log_error("Bar " .. tostring(i) .. " failed to initialize after " .. max_retries .. " retries")
     end
   end
 end
+
+hitokage.dispatch(initialize_bars)
 
 local update_clock_icon = hitokage.timeout(1000, function()
   for _, clock_icon in ipairs(reactive_clock_icons) do
